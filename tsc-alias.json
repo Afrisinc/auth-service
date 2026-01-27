@@ -1,0 +1,17 @@
+{
+  "baseUrl": "dist",
+  "paths": {
+    "@/*": ["*"],
+    "@/controllers/*": ["controllers/*"],
+    "@/services/*": ["services/*"],
+    "@/repositories/*": ["repositories/*"],
+    "@/middlewares/*": ["middlewares/*"],
+    "@/routes/*": ["routes/*"],
+    "@/utils/*": ["utils/*"],
+    "@/config/*": ["config/*"],
+    "@/schemas/*": ["schemas/*"],
+    "@/database/*": ["database/*"],
+    "@/tests/*": ["tests/*"]
+  },
+  "fileExtensions": [".js"]
+}

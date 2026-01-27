@@ -1,0 +1,25 @@
+enum UserRole {
+  ADMIN
+  SUPPORT
+  SELLER
+  BUYER
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  firstName         String
+  lastName          String
+  phone             String
+  tin               String?
+  companyName       String?
+  role              UserRole  @default(BUYER)
+  resetPasswordOtp  String?
+  otpExpiresAt      DateTime?
+  lastLogin         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("users")
+}

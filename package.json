@@ -1,0 +1,118 @@
+{
+  "name": "@homexa/auth-service",
+  "version": "1.0.0",
+  "description": "Authentication microservice with Fastify, TypeScript, and Prisma ORM. Handles user registration, login, password reset, and user profile management.",
+  "homepage": "https://github.com/yourusername/backend-template",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/backend-template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/backend-template/issues"
+  },
+  "author": {
+    "name": "Afrisinc Engineering",
+    "email": "info@afrisinc.com",
+    "url": "https://afrisinc.com"
+  },
+  "maintainers": [
+    {
+      "name": "Afrisinc Engineering",
+      "email": "info@afrisinc.com"
+    }
+  ],
+  "contributors": [
+    "Afrisinc Engineering <info@afrisinc.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0",
+    "yarn": ">=4.0.0"
+  },
+  "prisma": {
+    "schema": "src/database/model"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "dev:debug": "NODE_DEBUG=* tsx watch src/server.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/server.js",
+    "start:prod": "NODE_ENV=production node dist/server.js",
+    "lint": "eslint \"src/**/*.{js,ts}\" --max-warnings=0",
+    "lint:fix": "eslint \"src/**/*.{js,ts}\" --fix",
+    "format": "prettier --write \"src/**/*.{js,ts,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,json,md}\"",
+    "type-check": "tsc --noEmit",
+    "check-all": "npm run type-check && npm run lint && npm run format:check",
+    "fix-all": "npm run lint:fix && npm run format",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:init": "prisma migrate dev --name init",
+    "db:migrate:reset": "prisma migrate reset",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
+    "db:seed": "tsx src/database/seed.ts",
+    "db:setup": "npm run db:migrate:init && npm run db:generate && npm run db:seed",
+    "db:reset": "npm run db:migrate:reset && npm run db:seed",
+    "db:studio": "prisma studio",
+    "clean": "rimraf dist coverage node_modules/.prisma",
+    "clean:all": "rimraf dist coverage node_modules package-lock.json yarn.lock",
+    "cache:clean": "rimraf node_modules/.prisma && yarn cache clean && yarn install",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "fastify",
+    "nodejs",
+    "typescript",
+    "rest-api",
+    "prisma",
+    "orm",
+    "backend",
+    "microservice",
+    "authentication",
+    "auth-service",
+    "jwt",
+    "validation"
+  ],
+  "dependencies": {
+    "@fastify/cors": "^8.4.2",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/jwt": "^7.2.4",
+    "@fastify/multipart": "^8.3.1",
+    "@fastify/static": "^6.12.0",
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^4.2.0",
+    "@prisma/client": "^5.6.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.1.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.4",
+    "prettier": "^3.6.2",
+    "prisma": "^5.6.0",
+    "rimraf": "^5.0.5",
+    "tsc-alias": "^1.8.8",
+    "tsx": "^4.6.0",
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.46.1"
+  }
+}
