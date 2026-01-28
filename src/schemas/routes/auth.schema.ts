@@ -8,6 +8,7 @@ import {
   LoginResponseSchema,
   RegisterResponseSchema,
   ResetPasswordResponseSchema,
+  VerifyResponseSchema,
 } from '../responses/auth.schema';
 import { ErrorResponseSchema } from '../responses/common.schema';
 
@@ -81,5 +82,25 @@ export const ResetPasswordRouteSchema = {
   response: {
     200: ResetPasswordResponseSchema,
     400: ErrorResponseSchema,
+  },
+} as const;
+
+export const VerifyRouteSchema = {
+  tags: ['auth'],
+  summary: 'Verify JWT token',
+  description: 'Verify the validity of a JWT token and retrieve associated user information',
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: {
+        type: 'string',
+        description: 'JWT token in format "Bearer <token>" or just "<token>"',
+      },
+    },
+    required: ['authorization'],
+  },
+  response: {
+    200: VerifyResponseSchema,
+    401: ErrorResponseSchema,
   },
 } as const;

@@ -71,3 +71,21 @@ export const ResetPasswordResponseSchema = {
   },
   required: ['success', 'resp_msg', 'resp_code', 'data'],
 } as const;
+
+export const VerifyResponseSchema = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', example: true },
+    resp_msg: { type: 'string', example: 'Token is valid' },
+    resp_code: { type: 'number', example: 1004 },
+    data: {
+      type: 'object',
+      properties: {
+        valid: { type: 'boolean', example: true },
+        user: UserPublicSchema,
+      },
+      required: ['valid', 'user'],
+    },
+  },
+  required: ['success', 'resp_msg', 'resp_code', 'data'],
+} as const;

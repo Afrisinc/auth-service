@@ -79,4 +79,27 @@ export class AuthService {
     await repo.updatePassword(userId, hashed);
     return { message: 'Password reset successfully' };
   }
+
+  async verify(token: string) {
+    if (!token) {
+      throw new Error('Token is required');
+    }
+
+    const userData = verifyToken(token);
+    if (!userData) {
+      throw new Error('Invalid or expired token');
+    }
+
+    const user = await repo.findById(userData.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return {
+      valid: true,
+      userId: userData.userId,
+      email: userData.email,
+      user,
+    };
+  }
 }

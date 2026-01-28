@@ -51,3 +51,21 @@ export async function resetPassword(req: FastifyRequest, reply: FastifyReply) {
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }
 }
+
+export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return ApiResponseHelper.unauthorized(reply, 'Authorization header is required');
+    }
+
+    // Handle both "Bearer token" and "token" formats
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+
+    const result = await service.verify(token);
+    return ApiResponseHelper.success(reply, 'Token is valid', result);
+  } catch (err: unknown) {
+    return ApiResponseHelper.unauthorized(reply, getErrorMessage(err));
+  }
+}
