@@ -1,25 +1,120 @@
-enum UserRole {
+enum AccountType {
+  INDIVIDUAL
+  ORGANIZATION
+}
+
+enum ProductStatus {
+  PROVISIONING
+  ACTIVE
+  SUSPENDED
+}
+
+enum ProductPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum OrganizationMemberRole {
+  OWNER
   ADMIN
-  SUPPORT
-  SELLER
-  BUYER
+  MEMBER
 }
 
 model User {
   id                String    @id @default(uuid())
   email             String    @unique
-  password          String
-  firstName         String
-  lastName          String
-  phone             String
-  tin               String?
-  companyName       String?
-  role              UserRole  @default(BUYER)
-  resetPasswordOtp  String?
-  otpExpiresAt      DateTime?
-  lastLogin         DateTime?
+  password_hash     String
+  status            String    @default("active")
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  // Relations
+  accounts          Account[]
+  organizationMembers OrganizationMember[]
+
   @@map("users")
+}
+
+model Organization {
+  id                String    @id @default(uuid())
+  name              String
+  legal_name        String?
+  country           String?
+  tax_id            String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  members           OrganizationMember[]
+  accounts          Account[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id                String    @id @default(uuid())
+  organization_id   String
+  user_id           String
+  role              OrganizationMemberRole
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  user              User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([organization_id, user_id])
+  @@map("organization_members")
+}
+
+model Account {
+  id                String    @id @default(uuid())
+  type              AccountType
+  owner_user_id     String
+  organization_id   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  owner             User @relation(fields: [owner_user_id], references: [id], onDelete: Cascade)
+  organization      Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  products          AccountProduct[]
+
+  @@index([owner_user_id])
+  @@index([organization_id])
+  @@map("accounts")
+}
+
+model Product {
+  id                String    @id @default(uuid())
+  name              String
+  code              String    @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  accounts          AccountProduct[]
+
+  @@map("products")
+}
+
+model AccountProduct {
+  id                String    @id @default(uuid())
+  account_id        String
+  product_id        String
+  status            ProductStatus @default(ACTIVE)
+  plan              ProductPlan @default(FREE)
+  external_resource_id String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  account           Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  product           Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([account_id, product_id])
+  @@index([account_id])
+  @@index([product_id])
+  @@map("account_products")
 }

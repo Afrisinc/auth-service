@@ -1,24 +1,19 @@
-import { UserPublicSchema } from '../entities/user.schema';
-
-export const AuthDataSchema = {
-  type: 'object',
-  properties: {
-    user: UserPublicSchema,
-    token: {
-      type: 'string',
-      description: 'JWT authentication token',
-    },
-  },
-  required: ['user', 'token'],
-} as const;
-
 export const RegisterResponseSchema = {
   type: 'object',
   properties: {
     success: { type: 'boolean', example: true },
     resp_msg: { type: 'string', example: 'User registered successfully' },
     resp_code: { type: 'number', example: 1001 },
-    data: AuthDataSchema,
+    data: {
+      type: 'object',
+      properties: {
+        user_id: { type: 'string', description: 'User ID' },
+        account_id: { type: 'string', description: 'Individual account ID' },
+        email: { type: 'string', description: 'User email' },
+        token: { type: 'string', description: 'JWT authentication token' },
+      },
+      required: ['user_id', 'account_id', 'email', 'token'],
+    },
   },
   required: ['success', 'resp_msg', 'resp_code', 'data'],
 } as const;
@@ -29,7 +24,20 @@ export const LoginResponseSchema = {
     success: { type: 'boolean', example: true },
     resp_msg: { type: 'string', example: 'Login successful' },
     resp_code: { type: 'number', example: 1000 },
-    data: AuthDataSchema,
+    data: {
+      type: 'object',
+      properties: {
+        user_id: { type: 'string', description: 'User ID' },
+        email: { type: 'string', description: 'User email' },
+        account_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'List of account IDs user owns',
+        },
+        token: { type: 'string', description: 'JWT authentication token (base token)' },
+      },
+      required: ['user_id', 'email', 'account_ids', 'token'],
+    },
   },
   required: ['success', 'resp_msg', 'resp_code', 'data'],
 } as const;
@@ -46,10 +54,9 @@ export const ForgotPasswordResponseSchema = {
     data: {
       type: 'object',
       properties: {
-        resetLink: { type: 'string', nullable: true },
-        otp: { type: 'string', nullable: true },
+        resetLink: { type: 'string' },
       },
-      required: [],
+      required: ['resetLink'],
     },
   },
   required: ['success', 'resp_msg', 'resp_code', 'data'],
@@ -82,9 +89,11 @@ export const VerifyResponseSchema = {
       type: 'object',
       properties: {
         valid: { type: 'boolean', example: true },
-        user: UserPublicSchema,
+        user_id: { type: 'string' },
+        email: { type: 'string' },
+        token_type: { type: 'string', description: 'Token type: base or product' },
       },
-      required: ['valid', 'user'],
+      required: ['valid', 'user_id', 'email'],
     },
   },
   required: ['success', 'resp_msg', 'resp_code', 'data'],

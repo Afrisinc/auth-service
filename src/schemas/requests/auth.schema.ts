@@ -11,23 +11,8 @@ export const RegisterRequestSchema = {
       minLength: 6,
       description: 'User password (minimum 6 characters)',
     },
-    firstName: {
-      type: 'string',
-      minLength: 1,
-      description: 'User first name',
-    },
-    lastName: {
-      type: 'string',
-      minLength: 1,
-      description: 'User last name',
-    },
-    phone: {
-      type: 'string',
-      minLength: 10,
-      description: 'User phone number (minimum 10 characters)',
-    },
   },
-  required: ['email', 'password', 'firstName', 'lastName', 'phone'],
+  required: ['email', 'password'],
   additionalProperties: false,
 } as const;
 
@@ -56,13 +41,8 @@ export const ForgotPasswordRequestSchema = {
       format: 'email',
       description: 'User email address to send reset instructions',
     },
-    source: {
-      type: 'string',
-      enum: ['webapp', 'app'],
-      description: 'Source of the request, either webapp or app',
-    },
   },
-  required: ['email', 'source'],
+  required: ['email'],
   additionalProperties: false,
 } as const;
 

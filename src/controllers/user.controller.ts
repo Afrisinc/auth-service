@@ -6,7 +6,7 @@ const service = new UserService();
 
 export async function getUserProfile(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.sub || (req as any).user?.userId;
     if (!userId) {
       return ApiResponseHelper.unauthorized(reply, 'Authentication required');
     }
@@ -19,7 +19,7 @@ export async function getUserProfile(req: FastifyRequest, reply: FastifyReply) {
 
 export async function updateUserProfile(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.sub || (req as any).user?.userId;
     if (!userId) {
       return ApiResponseHelper.unauthorized(reply, 'Authentication required');
     }

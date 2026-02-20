@@ -35,15 +35,11 @@ export async function forgotPassword(req: FastifyRequest, reply: FastifyReply) {
 export async function resetPassword(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { token } = (req.query as { token?: string }) || {};
-    const { otp, email, newPassword } = req.body as {
-      otp?: string;
-      email?: string;
+    const { newPassword } = req.body as {
       newPassword: string;
     };
     const result = await service.resetPassword({
       token,
-      otp,
-      email,
       newPassword,
     });
     return ApiResponseHelper.success(reply, 'Password reset successfully', result);

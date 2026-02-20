@@ -13,3 +13,5 @@ export * from './responses/common.schema';
 export * from './routes/auth.schema';
 export * from './routes/health.schema';
 export * from './routes/user.schema';
+export * from './routes/organization.schema';
+export * from './routes/account.schema';

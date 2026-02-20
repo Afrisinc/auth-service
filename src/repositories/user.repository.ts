@@ -12,43 +12,10 @@ export class UserRepository {
   async updatePassword(userId: string, newPassword: string) {
     return prisma.user.update({
       where: { id: userId },
-      data: { password: newPassword },
+      data: { password_hash: newPassword },
     });
   }
 
-  async saveOtp(userId: string, otp: string, expiresAt: Date) {
-    return prisma.user.update({
-      where: { id: userId },
-      data: {
-        resetPasswordOtp: otp,
-        otpExpiresAt: expiresAt,
-      },
-    });
-  }
-
-  async verifyOtp(email: string, otp: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !user.resetPasswordOtp || !user.otpExpiresAt) {
-      return null;
-    }
-    if (user.resetPasswordOtp !== otp) {
-      return null;
-    }
-    if (user.otpExpiresAt < new Date()) {
-      return null;
-    }
-    return user;
-  }
-
-  async clearOtp(userId: string) {
-    return prisma.user.update({
-      where: { id: userId },
-      data: {
-        resetPasswordOtp: null,
-        otpExpiresAt: null,
-      },
-    });
-  }
   async findById(id: string) {
     return prisma.user.findUnique({ where: { id } });
   }
@@ -61,13 +28,7 @@ export class UserRepository {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        companyName: true,
-        tin: true,
-        role: true,
-        lastLogin: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -79,21 +40,6 @@ export class UserRepository {
     return prisma.user.count({ where });
   }
 
-  async createUserWithSelect(data: any) {
-    return prisma.user.create({
-      data,
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-      },
-    });
-  }
-
   async updateUser(id: string, data: any) {
     return prisma.user.update({
       where: { id },
@@ -101,18 +47,18 @@ export class UserRepository {
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
+        status: true,
         createdAt: true,
       },
     });
   }
 
-  async updateLastLogin(userId: string) {
-    return prisma.user.update({
+  async getUserWithAccounts(userId: string) {
+    return prisma.user.findUnique({
       where: { id: userId },
-      data: { lastLogin: new Date() },
+      include: {
+        accounts: true,
+      },
     });
   }
 }
