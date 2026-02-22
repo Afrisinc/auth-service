@@ -26,6 +26,10 @@ export const CreateUserRequestSchema = {
       minLength: 10,
       description: 'User phone number',
     },
+    location: {
+      type: 'string',
+      description: 'User location/address (optional)',
+    },
     tin: {
       type: 'string',
       description: 'Tax Identification Number (optional)',
@@ -61,6 +65,10 @@ export const UpdateUserRequestSchema = {
       type: 'string',
       minLength: 10,
       description: 'User phone number',
+    },
+    location: {
+      type: 'string',
+      description: 'User location/address (optional)',
     },
   },
   additionalProperties: false,

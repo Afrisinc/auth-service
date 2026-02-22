@@ -4,8 +4,16 @@ import { logger } from '@/utils/logger.js';
 import { ApiResponseHelper } from '@/utils/apiResponse.js';
 
 interface JwtPayload {
-  userId: string;
+  sub?: string;
+  userId?: string;
   email: string;
+  account_ids?: string[];
+  account_id?: string;
+  account_type?: string;
+  product?: string;
+  resource_id?: string;
+  role?: string;
+  type?: string;
   iat: number;
   exp: number;
 }
@@ -13,8 +21,16 @@ interface JwtPayload {
 declare module 'fastify' {
   interface FastifyRequest {
     user?: {
-      userId: string;
+      sub?: string;
+      userId?: string;
       email: string;
+      account_ids?: string[];
+      account_id?: string;
+      account_type?: string;
+      product?: string;
+      resource_id?: string;
+      role?: string;
+      type?: string;
     };
   }
 }
@@ -61,16 +77,70 @@ export const authGuard = async (request: FastifyRequest, reply: FastifyReply) =>
 
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
 
-    // Attach user info to request object
+    // Validate token type and route compatibility
+    const tokenType = decoded.type || 'base'; // Default to base for backward compatibility
+    const path = request.url.split('?')[0]; // Remove query params
+
+    if (tokenType === 'base') {
+      // Base tokens can access accounts, auth, identity, and platform routes
+      const allowedPaths = [
+        '/accounts',
+        '/auth/switch-product',
+        '/organizations',
+        '/auth/',
+        '/platform',
+        '/users',
+        '/products',
+      ];
+      const isAllowed = allowedPaths.some(p => path.startsWith(p));
+      if (!isAllowed) {
+        logger.warn(
+          {
+            userId: decoded.sub,
+            tokenType,
+            attemptedPath: path,
+          },
+          'Base token used for non-allowed route'
+        );
+        return ApiResponseHelper.unauthorized(reply, 'Token type not valid for this route');
+      }
+    } else if (tokenType === 'product') {
+      // Product tokens require resource_id and product claim
+      if (!decoded.product || !decoded.resource_id) {
+        logger.warn(
+          {
+            userId: decoded.sub,
+            tokenType,
+            path,
+            hasClaim: !!decoded.product,
+            hasResourceId: !!decoded.resource_id,
+          },
+          'Product token missing required claims'
+        );
+        return ApiResponseHelper.unauthorized(reply, 'Invalid product token');
+      }
+    }
+
+    // Attach user info to request object (support both old and new token formats)
     request.user = {
+      sub: decoded.sub,
       userId: decoded.userId,
       email: decoded.email,
+      account_ids: decoded.account_ids,
+      account_id: decoded.account_id,
+      account_type: decoded.account_type,
+      product: decoded.product,
+      resource_id: decoded.resource_id,
+      role: decoded.role,
+      type: decoded.type,
     };
 
+    const userId = decoded.sub || decoded.userId;
     logger.debug(
       {
-        userId: decoded.userId,
+        userId,
         email: decoded.email,
+        tokenType: decoded.type,
         path: request.url,
       },
       'User authenticated successfully'

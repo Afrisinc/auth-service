@@ -38,7 +38,8 @@ const PaginationSchema = {
 export const GetAllUsersSchema = {
   tags: ['users'],
   summary: 'Get all users with pagination and search',
-  description: 'Retrieve a paginated list of users with optional search filtering',
+  description: 'Retrieve a paginated list of users with optional search filtering. Requires authentication.',
+  security: [{ bearerAuth: [] }],
   querystring: {
     type: 'object',
     properties: {
@@ -58,6 +59,10 @@ export const GetAllUsersSchema = {
       search: {
         type: 'string',
         description: 'Search term to filter users by firstName, lastName, email, or phone',
+      },
+      status: {
+        type: 'string',
+        description: 'Filter users by status (e.g., ACTIVE, PENDING, INACTIVE)',
       },
     },
   },

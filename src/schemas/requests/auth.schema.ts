@@ -13,21 +13,22 @@ export const RegisterRequestSchema = {
     },
     firstName: {
       type: 'string',
-      minLength: 1,
-      description: 'User first name',
+      description: 'User first name (optional)',
     },
     lastName: {
       type: 'string',
-      minLength: 1,
-      description: 'User last name',
+      description: 'User last name (optional)',
     },
     phone: {
       type: 'string',
-      minLength: 10,
-      description: 'User phone number (minimum 10 characters)',
+      description: 'User phone number (optional)',
+    },
+    location: {
+      type: 'string',
+      description: 'User location/address (optional)',
     },
   },
-  required: ['email', 'password', 'firstName', 'lastName', 'phone'],
+  required: ['email', 'password'],
   additionalProperties: false,
 } as const;
 
@@ -56,13 +57,8 @@ export const ForgotPasswordRequestSchema = {
       format: 'email',
       description: 'User email address to send reset instructions',
     },
-    source: {
-      type: 'string',
-      enum: ['webapp', 'app'],
-      description: 'Source of the request, either webapp or app',
-    },
   },
-  required: ['email', 'source'],
+  required: ['email'],
   additionalProperties: false,
 } as const;
 

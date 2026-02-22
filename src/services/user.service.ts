@@ -13,28 +13,33 @@ export class UserService {
 
   async updateUserProfile(userId: string, data: any) {
     const updateData: any = {};
-    if (data.firstName) {
-      updateData.firstName = data.firstName;
-    }
-    if (data.lastName) {
-      updateData.lastName = data.lastName;
-    }
-    if (data.phone) {
-      updateData.phone = data.phone;
+    if (data.status) {
+      updateData.status = data.status;
     }
 
     if (Object.keys(updateData).length === 0) {
       throw new Error('At least one field must be provided');
     }
 
-    try {
-      const updatedUser = await userRepository.updateUser(userId, updateData);
-      return updatedUser;
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new Error('User with this email already exists');
-      }
-      throw error;
-    }
+    const updatedUser = await userRepository.updateUser(userId, updateData);
+    return updatedUser;
+  }
+
+  async getAllUsers(page: number = 1, limit: number = 10, search?: string, status?: string) {
+    const skip = (page - 1) * limit;
+    const users = await userRepository.findMany(skip, limit, search, status);
+    const total = await userRepository.count(search, status);
+
+    return {
+      data: users,
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
+      },
+    };
   }
 }

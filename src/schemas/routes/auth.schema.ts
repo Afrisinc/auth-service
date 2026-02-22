@@ -48,29 +48,20 @@ export const ForgotPasswordRouteSchema = {
 export const ResetPasswordRouteSchema = {
   tags: ['auth'],
   summary: 'Reset user password',
-  description:
-    'Reset the user password using either token (webapp) or OTP (app). For webapp: provide token in query param. For app: provide otp and email in body.',
+  description: 'Reset the user password using token from email link. Provide token in query param.',
   querystring: {
     type: 'object',
     properties: {
       token: {
         type: 'string',
-        description: 'Password reset token from email link (for webapp)',
+        description: 'Password reset token from email link',
       },
     },
+    required: ['token'],
   },
   body: {
     type: 'object',
     properties: {
-      otp: {
-        type: 'string',
-        description: '6-digit OTP code (for app)',
-      },
-      email: {
-        type: 'string',
-        format: 'email',
-        description: 'User email (required when using OTP)',
-      },
       newPassword: {
         type: 'string',
         minLength: 6,
