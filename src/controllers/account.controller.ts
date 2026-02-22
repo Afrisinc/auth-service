@@ -47,6 +47,16 @@ export async function getUserAccounts(req: FastifyRequest, reply: FastifyReply) 
   }
 }
 
+export async function getUserAccountsById(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { userId } = req.params as { userId: string };
+    const accounts = await service.getUserAccounts(userId);
+    return ApiResponseHelper.success(reply, 'Accounts retrieved successfully', { accounts });
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}
+
 export async function enrollProduct(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { accountId } = req.params as { accountId: string };
@@ -145,6 +155,31 @@ export async function getAccountProducts(req: FastifyRequest, reply: FastifyRepl
 
     const products = await service.getAccountProducts(accountId);
     return ApiResponseHelper.success(reply, 'Products retrieved successfully', { products });
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}
+
+export async function getAllAccounts(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      type,
+    } = req.query as {
+      page?: number;
+      limit?: number;
+      search?: string;
+      type?: string;
+    };
+
+    // Validate pagination parameters
+    const pageNum = Math.max(1, Math.min(page, 10000));
+    const limitNum = Math.max(1, Math.min(limit, 100));
+
+    const result = await service.getAllAccounts(pageNum, limitNum, search, type);
+    return ApiResponseHelper.success(reply, 'Accounts retrieved successfully', result);
   } catch (err: unknown) {
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }

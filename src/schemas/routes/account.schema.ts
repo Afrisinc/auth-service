@@ -117,7 +117,7 @@ export const GetUserAccountsRouteSchema = {
 } as const;
 
 export const EnrollProductRouteSchema = {
-  tags: ['accounts'],
+  tags: ['products'],
   summary: 'Enroll account in product',
   description: 'Register an account for a specific product with a chosen plan',
   params: {
@@ -213,7 +213,7 @@ export const SwitchProductRouteSchema = {
 } as const;
 
 export const GetAccountProductsRouteSchema = {
-  tags: ['accounts'],
+  tags: ['products'],
   summary: 'Get account enrolled products',
   description: 'Retrieve all products the account is enrolled in',
   params: {
@@ -263,6 +263,137 @@ export const GetAccountProductsRouteSchema = {
         },
       },
     },
+    401: ErrorResponseSchema,
+  },
+} as const;
+
+const PaginationSchema = {
+  type: 'object',
+  properties: {
+    page: {
+      type: 'integer',
+      minimum: 1,
+      description: 'Current page number (1-indexed)',
+    },
+    limit: {
+      type: 'integer',
+      minimum: 1,
+      maximum: 100,
+      description: 'Number of items per page',
+    },
+    totalItems: {
+      type: 'integer',
+      description: 'Total number of items',
+    },
+    totalPages: {
+      type: 'integer',
+      description: 'Total number of pages',
+    },
+    hasNext: {
+      type: 'boolean',
+      description: 'Whether there is a next page',
+    },
+    hasPrev: {
+      type: 'boolean',
+      description: 'Whether there is a previous page',
+    },
+  },
+} as const;
+
+export const GetAllAccountsSchema = {
+  tags: ['accounts'],
+  summary: 'Get all accounts with pagination and search',
+  description:
+    'Retrieve a paginated list of accounts with optional search filtering and type filtering. Requires authentication.',
+  security: [{ bearerAuth: [] }],
+  querystring: {
+    type: 'object',
+    properties: {
+      page: {
+        type: 'integer',
+        minimum: 1,
+        default: 1,
+        description: 'Page number (default: 1)',
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        default: 10,
+        description: 'Items per page (default: 10, max: 100)',
+      },
+      search: {
+        type: 'string',
+        description: 'Search term to filter accounts by ID or owner email',
+      },
+      type: {
+        type: 'string',
+        enum: ['INDIVIDUAL', 'ORGANIZATION'],
+        description: 'Filter accounts by type',
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Accounts retrieved successfully' },
+        resp_code: { type: 'integer', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  type: { type: 'string', enum: ['INDIVIDUAL', 'ORGANIZATION'] },
+                  owner_user_id: { type: 'string' },
+                  organization_id: { type: 'string', nullable: true },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                  owner: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      email: { type: 'string' },
+                      firstName: { type: 'string', nullable: true },
+                      lastName: { type: 'string', nullable: true },
+                    },
+                  },
+                  products: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        account_id: { type: 'string' },
+                        product_id: { type: 'string' },
+                        status: { type: 'string', enum: ['PROVISIONING', 'ACTIVE', 'SUSPENDED'] },
+                        plan: { type: 'string', enum: ['FREE', 'PRO', 'ENTERPRISE'] },
+                        product: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'string' },
+                            name: { type: 'string' },
+                            code: { type: 'string' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              description: 'Array of account objects',
+            },
+            pagination: PaginationSchema,
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
     401: ErrorResponseSchema,
   },
 } as const;

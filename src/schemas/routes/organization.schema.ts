@@ -1,9 +1,11 @@
+import { UserEntitySchema } from '../entities/user.schema';
 import { ErrorResponseSchema } from '../responses/common.schema';
 
 export const CreateOrganizationRouteSchema = {
   tags: ['organizations'],
   summary: 'Create a new organization',
-  description: 'Create a new organization with name, legal name, country, and optional tax ID',
+  description:
+    'Create a new organization with name, legal name, country, and optional tax ID, email, phone, and location',
   body: {
     type: 'object',
     properties: {
@@ -23,6 +25,19 @@ export const CreateOrganizationRouteSchema = {
         type: 'string',
         description: 'Tax ID (optional)',
       },
+      org_email: {
+        type: 'string',
+        format: 'email',
+        description: 'Organization email address (optional)',
+      },
+      org_phone: {
+        type: 'string',
+        description: 'Organization phone number (optional)',
+      },
+      location: {
+        type: 'string',
+        description: 'Organization location/address (optional)',
+      },
     },
     required: ['name'],
   },
@@ -40,6 +55,12 @@ export const CreateOrganizationRouteSchema = {
             organization_id: { type: 'string' },
             account_id: { type: 'string' },
             name: { type: 'string' },
+            legal_name: { type: 'string', nullable: true },
+            country: { type: 'string', nullable: true },
+            tax_id: { type: 'string', nullable: true },
+            org_email: { type: 'string', nullable: true },
+            org_phone: { type: 'string', nullable: true },
+            location: { type: 'string', nullable: true },
           },
         },
       },
@@ -79,6 +100,9 @@ export const GetOrganizationRouteSchema = {
             legal_name: { type: 'string', nullable: true },
             country: { type: 'string', nullable: true },
             tax_id: { type: 'string', nullable: true },
+            org_email: { type: 'string', nullable: true },
+            org_phone: { type: 'string', nullable: true },
+            location: { type: 'string', nullable: true },
             members: {
               type: 'array',
               items: {
@@ -233,6 +257,11 @@ export const ListMembersRouteSchema = {
                   organization_id: { type: 'string' },
                   user_id: { type: 'string' },
                   role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+                  email: UserEntitySchema.properties.email,
+                  firstName: UserEntitySchema.properties.firstName,
+                  lastName: UserEntitySchema.properties.lastName,
+                  phone: UserEntitySchema.properties.phone,
+                  status: UserEntitySchema.properties.status,
                 },
               },
             },
@@ -240,6 +269,131 @@ export const ListMembersRouteSchema = {
         },
       },
     },
+    401: ErrorResponseSchema,
+  },
+} as const;
+
+const PaginationSchema = {
+  type: 'object',
+  properties: {
+    page: {
+      type: 'integer',
+      minimum: 1,
+      description: 'Current page number (1-indexed)',
+    },
+    limit: {
+      type: 'integer',
+      minimum: 1,
+      maximum: 100,
+      description: 'Number of items per page',
+    },
+    totalItems: {
+      type: 'integer',
+      description: 'Total number of items',
+    },
+    totalPages: {
+      type: 'integer',
+      description: 'Total number of pages',
+    },
+    hasNext: {
+      type: 'boolean',
+      description: 'Whether there is a next page',
+    },
+    hasPrev: {
+      type: 'boolean',
+      description: 'Whether there is a previous page',
+    },
+  },
+} as const;
+
+export const GetAllOrganizationsSchema = {
+  tags: ['organizations'],
+  summary: 'Get all organizations with pagination and search',
+  description:
+    'Retrieve a paginated list of organizations with optional search filtering and status filtering. Requires authentication.',
+  security: [{ bearerAuth: [] }],
+  querystring: {
+    type: 'object',
+    properties: {
+      page: {
+        type: 'integer',
+        minimum: 1,
+        default: 1,
+        description: 'Page number (default: 1)',
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        default: 10,
+        description: 'Items per page (default: 10, max: 100)',
+      },
+      search: {
+        type: 'string',
+        description: 'Search term to filter organizations by name, legal name, or email',
+      },
+      status: {
+        type: 'string',
+        description: 'Filter organizations by status',
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Organizations retrieved successfully' },
+        resp_code: { type: 'integer', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                  legal_name: { type: 'string', nullable: true },
+                  country: { type: 'string', nullable: true },
+                  tax_id: { type: 'string', nullable: true },
+                  org_email: { type: 'string', nullable: true },
+                  org_phone: { type: 'string', nullable: true },
+                  location: { type: 'string', nullable: true },
+                  status: { type: 'string', nullable: true },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                  members: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        user_id: { type: 'string' },
+                        role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+                        user: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'string' },
+                            email: { type: 'string' },
+                            firstName: { type: 'string', nullable: true },
+                            lastName: { type: 'string', nullable: true },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              description: 'Array of organization objects',
+            },
+            pagination: PaginationSchema,
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
     401: ErrorResponseSchema,
   },
 } as const;

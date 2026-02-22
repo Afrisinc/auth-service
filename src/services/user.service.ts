@@ -24,4 +24,22 @@ export class UserService {
     const updatedUser = await userRepository.updateUser(userId, updateData);
     return updatedUser;
   }
+
+  async getAllUsers(page: number = 1, limit: number = 10, search?: string, status?: string) {
+    const skip = (page - 1) * limit;
+    const users = await userRepository.findMany(skip, limit, search, status);
+    const total = await userRepository.count(search, status);
+
+    return {
+      data: users,
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
+      },
+    };
+  }
 }

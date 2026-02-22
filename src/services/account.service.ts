@@ -168,4 +168,35 @@ export class AccountService {
 
     return false;
   }
+
+  async getAllAccounts(page: number = 1, limit: number = 10, search?: string, type?: string) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { id: { contains: search, mode: 'insensitive' as const } },
+        { owner: { email: { contains: search, mode: 'insensitive' as const } } },
+      ];
+    }
+
+    if (type) {
+      where.type = type;
+    }
+
+    const accounts = await accountRepo.findMany(skip, limit, where);
+    const total = await accountRepo.count(where);
+
+    return {
+      data: accounts,
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
+      },
+    };
+  }
 }

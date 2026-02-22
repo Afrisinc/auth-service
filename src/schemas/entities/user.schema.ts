@@ -18,17 +18,18 @@ export const UserEntitySchema = {
       type: 'string',
       description: 'User phone number',
     },
+    location: {
+      type: 'string',
+      description: 'User location/address (optional)',
+    },
     email: {
       type: 'string',
       description: 'User email address',
     },
-    tin: {
+    status: {
       type: 'string',
-      description: 'Tax Identification Number (optional)',
-    },
-    companyName: {
-      type: 'string',
-      description: 'Company name (optional)',
+      enum: ['ACTIVE', 'INACTIVE', 'DORMANT', 'CLOSED', 'SUSPENDED'],
+      description: 'User account status',
     },
     lastLogin: {
       type: 'string',
@@ -43,10 +44,10 @@ export const UserEntitySchema = {
     updatedAt: {
       type: 'string',
       format: 'date-time',
-      description: 'Account creation timestamp',
+      description: 'Account update timestamp',
     },
   },
-  required: ['id', 'email', 'firstName', 'lastName', 'phone', 'createdAt'],
+  required: ['id', 'email', 'createdAt'],
 } as const;
 
 export const UserPublicSchema = {
@@ -57,8 +58,8 @@ export const UserPublicSchema = {
     firstName: UserEntitySchema.properties.firstName,
     lastName: UserEntitySchema.properties.lastName,
     phone: UserEntitySchema.properties.phone,
-    tin: UserEntitySchema.properties.tin,
-    companyName: UserEntitySchema.properties.companyName,
+    location: UserEntitySchema.properties.location,
+    status: UserEntitySchema.properties.status,
     lastLogin: UserEntitySchema.properties.lastLogin,
     createdAt: UserEntitySchema.properties.createdAt,
     updatedAt: UserEntitySchema.properties.updatedAt,

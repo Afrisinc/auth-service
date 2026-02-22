@@ -78,3 +78,28 @@ export async function updateOrganization(req: FastifyRequest, reply: FastifyRepl
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }
 }
+
+export async function getAllOrganizations(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+    } = req.query as {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+    };
+
+    // Validate pagination parameters
+    const pageNum = Math.max(1, Math.min(page, 10000));
+    const limitNum = Math.max(1, Math.min(limit, 100));
+
+    const result = await service.getAllOrganizations(pageNum, limitNum, search, status);
+    return ApiResponseHelper.success(reply, 'Organizations retrieved successfully', result);
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}

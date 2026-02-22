@@ -2,6 +2,13 @@ enum AccountType {
   INDIVIDUAL
   ORGANIZATION
 }
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DORMANT
+  CLOSED
+  SUSPENDED
+}
 
 enum ProductStatus {
   PROVISIONING
@@ -25,13 +32,20 @@ model User {
   id                String    @id @default(uuid())
   email             String    @unique
   password_hash     String
-  status            String    @default("active")
+  firstName         String?
+  lastName          String?
+  phone             String?
+  location          String?
+  status            UserStatus    @default(ACTIVE)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   // Relations
   accounts          Account[]
   organizationMembers OrganizationMember[]
+  loginEvents       LoginEvent[]
+  loginFailures     LoginFailure[]    @relation("LoginFailures")
+  tokens            Token[]           @relation("Tokens")
 
   @@map("users")
 }
@@ -42,6 +56,9 @@ model Organization {
   legal_name        String?
   country           String?
   tax_id            String?
+  org_email         String?
+  org_phone         String?
+  location          String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -90,6 +107,7 @@ model Product {
   id                String    @id @default(uuid())
   name              String
   code              String    @unique
+  description       String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -117,4 +135,58 @@ model AccountProduct {
   @@index([account_id])
   @@index([product_id])
   @@map("account_products")
+}
+
+model LoginEvent {
+  id        String    @id @default(uuid())
+  user_id   String
+  status    String    // success | failed
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([createdAt])
+  @@index([status])
+  @@map("login_events")
+}
+
+model LoginFailure {
+  id              String    @id @default(uuid())
+  email           String
+  ip_address      String
+  failure_reason  String    // "Invalid password", "Account locked", "MFA failed", "Expired token"
+  user_id         String?
+  session_id      String?
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  user            User?     @relation("LoginFailures", fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([ip_address])
+  @@index([email])
+  @@index([user_id])
+  @@index([ip_address, createdAt])
+  @@index([email, createdAt])
+  @@map("login_failures")
+}
+
+model Token {
+  id              String    @id @default(uuid())
+  user_id         String
+  token_type      String    // "access", "refresh", "api_key"
+  issued_at       DateTime  @default(now())
+  expires_at      DateTime?
+  revoked_at      DateTime?
+
+  // Relations
+  user            User      @relation("Tokens", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([issued_at])
+  @@index([user_id, issued_at])
+  @@map("tokens")
 }

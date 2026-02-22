@@ -15,3 +15,5 @@ export * from './routes/health.schema';
 export * from './routes/user.schema';
 export * from './routes/organization.schema';
 export * from './routes/account.schema';
+export * from './routes/product.schema';
+export * from './routes/security.schema';

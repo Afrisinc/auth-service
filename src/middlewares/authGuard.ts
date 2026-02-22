@@ -82,8 +82,16 @@ export const authGuard = async (request: FastifyRequest, reply: FastifyReply) =>
     const path = request.url.split('?')[0]; // Remove query params
 
     if (tokenType === 'base') {
-      // Base tokens can access accounts, auth, and identity routes
-      const allowedPaths = ['/accounts', '/auth/switch-product', '/organizations', '/auth/'];
+      // Base tokens can access accounts, auth, identity, and platform routes
+      const allowedPaths = [
+        '/accounts',
+        '/auth/switch-product',
+        '/organizations',
+        '/auth/',
+        '/platform',
+        '/users',
+        '/products',
+      ];
       const isAllowed = allowedPaths.some(p => path.startsWith(p));
       if (!isAllowed) {
         logger.warn(

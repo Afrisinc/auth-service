@@ -6,6 +6,7 @@ import {
   removeMember,
   listMembers,
   updateOrganization,
+  getAllOrganizations,
 } from '../controllers/organization.controller';
 import {
   CreateOrganizationRouteSchema,
@@ -13,6 +14,7 @@ import {
   AddMemberRouteSchema,
   RemoveMemberRouteSchema,
   ListMembersRouteSchema,
+  GetAllOrganizationsSchema,
 } from '../schemas';
 import { authGuard } from '../middlewares/authGuard';
 
@@ -22,6 +24,13 @@ export async function organizationRoutes(app: FastifyInstance) {
     '/organizations',
     { schema: CreateOrganizationRouteSchema, onRequest: [authGuard] },
     createOrganization
+  );
+
+  // Get all organizations with pagination and search
+  app.get(
+    '/organizations',
+    { schema: GetAllOrganizationsSchema, onRequest: [authGuard] },
+    getAllOrganizations
   );
 
   // Get organization

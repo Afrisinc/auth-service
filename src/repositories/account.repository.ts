@@ -64,9 +64,21 @@ export class AccountRepository {
           select: {
             id: true,
             email: true,
+            firstName: true,
+            lastName: true,
           },
         },
-        products: true,
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

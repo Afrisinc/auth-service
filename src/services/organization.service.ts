@@ -1,9 +1,7 @@
 import { OrganizationRepository } from '../repositories/organization.repository';
-import { AccountRepository } from '../repositories/account.repository';
 import { prisma } from '../database/prismaClient';
 
 const orgRepo = new OrganizationRepository();
-const accountRepo = new AccountRepository();
 
 export class OrganizationService {
   async createOrganization(data: any, userId: string) {
@@ -16,6 +14,9 @@ export class OrganizationService {
           legal_name: data.legal_name,
           country: data.country,
           tax_id: data.tax_id,
+          org_email: data.org_email,
+          org_phone: data.org_phone,
+          location: data.location,
         },
       });
 
@@ -72,7 +73,21 @@ export class OrganizationService {
 
   async listMembers(organizationId: string) {
     const org = await orgRepo.findByIdWithMembers(organizationId);
-    return org?.members || [];
+    if (!org?.members) {
+      return [];
+    }
+
+    return org.members.map(member => ({
+      id: member.id,
+      organization_id: member.organization_id,
+      user_id: member.user_id,
+      role: member.role,
+      email: member.user?.email,
+      firstName: member.user?.firstName,
+      lastName: member.user?.lastName,
+      phone: member.user?.phone,
+      status: member.user?.status,
+    }));
   }
 
   async updateOrganization(organizationId: string, data: any) {
@@ -87,5 +102,37 @@ export class OrganizationService {
   async validateUserIsOrgOwner(organizationId: string, userId: string) {
     const member = await orgRepo.getMember(organizationId, userId);
     return member?.role === 'OWNER';
+  }
+
+  async getAllOrganizations(page: number = 1, limit: number = 10, search?: string, status?: string) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { legal_name: { contains: search, mode: 'insensitive' as const } },
+        { org_email: { contains: search, mode: 'insensitive' as const } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const organizations = await orgRepo.findMany(skip, limit, where);
+    const total = await orgRepo.count(where);
+
+    return {
+      data: organizations,
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
+      },
+    };
   }
 }

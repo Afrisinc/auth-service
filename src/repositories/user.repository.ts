@@ -20,23 +20,70 @@ export class UserRepository {
     return prisma.user.findUnique({ where: { id } });
   }
 
-  async findMany(skip: number, take: number, where?: any) {
-    return prisma.user.findMany({
+  async findMany(skip: number, take: number, search?: string, status?: string) {
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' as const } },
+        { firstName: { contains: search, mode: 'insensitive' as const } },
+        { lastName: { contains: search, mode: 'insensitive' as const } },
+        { phone: { contains: search, mode: 'insensitive' as const } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const users = await prisma.user.findMany({
       where,
       skip,
       take,
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        location: true,
         status: true,
         createdAt: true,
         updatedAt: true,
+        loginEvents: {
+          select: {
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    return users.map(user => ({
+      ...user,
+      lastLogin: user.loginEvents[0]?.createdAt || null,
+      loginEvents: undefined,
+    }));
   }
 
-  async count(where?: any) {
+  async count(search?: string, status?: string) {
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' as const } },
+        { firstName: { contains: search, mode: 'insensitive' as const } },
+        { lastName: { contains: search, mode: 'insensitive' as const } },
+        { phone: { contains: search, mode: 'insensitive' as const } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
     return prisma.user.count({ where });
   }
 

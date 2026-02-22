@@ -28,7 +28,11 @@ export class AuthService {
         data: {
           email: data.email,
           password_hash: hashed,
-          status: 'active',
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          location: data.location,
+          status: 'ACTIVE',
         },
       });
 
@@ -49,6 +53,8 @@ export class AuthService {
       user_id: result.user.id,
       account_id: result.account.id,
       email: result.user.email,
+      firstName: result.user.firstName,
+      lastName: result.user.lastName,
       token,
     };
   }

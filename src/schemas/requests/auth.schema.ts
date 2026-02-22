@@ -11,6 +11,22 @@ export const RegisterRequestSchema = {
       minLength: 6,
       description: 'User password (minimum 6 characters)',
     },
+    firstName: {
+      type: 'string',
+      description: 'User first name (optional)',
+    },
+    lastName: {
+      type: 'string',
+      description: 'User last name (optional)',
+    },
+    phone: {
+      type: 'string',
+      description: 'User phone number (optional)',
+    },
+    location: {
+      type: 'string',
+      description: 'User location/address (optional)',
+    },
   },
   required: ['email', 'password'],
   additionalProperties: false,

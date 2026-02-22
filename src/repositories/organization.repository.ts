@@ -19,6 +19,10 @@ export class OrganizationRepository {
               select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                status: true,
               },
             },
           },
@@ -38,6 +42,17 @@ export class OrganizationRepository {
             id: true,
             user_id: true,
             role: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          where: {
+            role: 'OWNER',
           },
         },
       },
