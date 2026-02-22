@@ -26,6 +26,8 @@ RUN npx prisma generate
 # Build app (if TypeScript)
 RUN yarn build
 
+# Deploy Prisma migrations
+RUN npx prisma migrate deploy --skip-generate
 
 # Final image
 FROM node:20-bullseye
@@ -33,4 +35,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y libssl1.1 bash
 COPY --from=builder /app ./
 EXPOSE 8092
-CMD ["node", "dist/server.js"]
+
+# Create startup script that runs migrations and starts the app
+RUN echo '#!/bin/bash\nset -e\nnpx prisma migrate deploy --skip-generate\nnode dist/server.js' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]

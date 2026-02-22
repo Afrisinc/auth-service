@@ -549,28 +549,33 @@ async function main() {
 
     // Seed tokens for security testing
     logger.info('Creating sample tokens...');
-    const tokens = [];
 
-    // Create 1284 tokens distributed across all users
-    for (let i = 0; i < 1284; i++) {
-      const userIndex = i % users.length;
-      const tokenType = ['access', 'refresh', 'api_key'][i % 3];
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+    // Create 128 tokens distributed across all users (reduced from 1284 for connection pool)
+    const tokenBatchSize = 20;
+    let tokenCount = 0;
+    for (let batch = 0; batch < 128; batch += tokenBatchSize) {
+      const tokenBatch = [];
+      for (let i = batch; i < Math.min(batch + tokenBatchSize, 128); i++) {
+        const userIndex = i % users.length;
+        const tokenType = ['access', 'refresh', 'api_key'][i % 3];
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
 
-      tokens.push(
-        prisma.token.create({
-          data: {
-            user_id: users[userIndex].id,
-            token_type: tokenType,
-            expires_at: expiresAt,
-            issued_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-          },
-        })
-      );
+        tokenBatch.push(
+          prisma.token.create({
+            data: {
+              user_id: users[userIndex].id,
+              token_type: tokenType,
+              expires_at: expiresAt,
+              issued_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+            },
+          })
+        );
+      }
+      await Promise.all(tokenBatch);
+      tokenCount += tokenBatch.length;
     }
 
-    await Promise.all(tokens);
-    logger.info(`Created ${tokens.length} tokens for security testing`);
+    logger.info(`Created ${tokenCount} tokens for security testing`);
 
     logger.info('Database seeding completed successfully!');
     logger.info('');
