@@ -26,9 +26,6 @@ RUN npx prisma generate
 # Build app (if TypeScript)
 RUN yarn build
 
-# Deploy Prisma migrations
-RUN npx prisma migrate deploy --skip-generate
-
 # Final image
 FROM node:20-bullseye
 WORKDIR /app
@@ -37,7 +34,7 @@ COPY --from=builder /app ./
 EXPOSE 8092
 
 # Create startup script that runs migrations and starts the app
-RUN echo '#!/bin/bash\nset -e\nnpx prisma migrate deploy --skip-generate\nnode dist/server.js' > /app/start.sh && \
+RUN echo '#!/bin/bash\nset -e\nnpx prisma migrate deploy\nnode dist/server.js' > /app/start.sh && \
     chmod +x /app/start.sh
 
 CMD ["/app/start.sh"]
