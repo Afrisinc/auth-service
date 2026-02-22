@@ -80,7 +80,7 @@ export class OrganizationRepository {
       data: {
         organization_id: organizationId,
         user_id: userId,
-        role,
+        role: role as any,
       },
     });
   }

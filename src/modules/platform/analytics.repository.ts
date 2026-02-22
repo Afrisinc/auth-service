@@ -68,7 +68,7 @@ export class AnalyticsRepository {
       }),
       prisma.user.count({
         where: {
-          status: 'suspended',
+          status: 'SUSPENDED',
         },
       }),
     ]);

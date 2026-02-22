@@ -26,7 +26,7 @@ export class AccountRepository {
     return prisma.account.findFirst({
       where: {
         owner_user_id: userId,
-        type,
+        type: type as any,
       },
     });
   }
