@@ -23,8 +23,11 @@ export async function recordLoginFailure(
   } catch (error) {
     // Log but don't throw - security recording should never crash auth
     logger.error(
-      `Failed to record login failure for ${email}`,
-      error instanceof Error ? error.message : String(error)
+      {
+        email,
+        err: error instanceof Error ? error : new Error(String(error)),
+      },
+      'Failed to record login failure'
     );
   }
 }
