@@ -108,4 +108,24 @@ export class UserRepository {
       },
     });
   }
+
+  async recordLoginEvent(userId: string, ipAddress: string) {
+    return prisma.loginEvent.create({
+      data: {
+        user_id: userId,
+        status: 'success',
+        ip: ipAddress,
+      },
+    });
+  }
+
+  async getLastLogin(userId: string) {
+    return prisma.loginEvent.findFirst({
+      where: {
+        user_id: userId,
+        status: 'success',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }
