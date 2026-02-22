@@ -9,6 +9,7 @@ import {
 } from '../utils/jwt';
 import { env } from '../config/env';
 import { prisma } from '../database/prismaClient';
+import { recordLoginFailure } from '../utils/securityRecorder';
 
 const userRepo = new UserRepository();
 const accountRepo = new AccountRepository();
@@ -59,20 +60,27 @@ export class AuthService {
     };
   }
 
-  async login(data: any) {
+  async login(data: any, ipAddress?: string) {
     const user = await userRepo.findByEmail(data.email);
     if (!user) {
+      // Record failed login - user not found
+      await recordLoginFailure(data.email, ipAddress || 'unknown', 'Invalid credentials');
       throw new Error('Invalid credentials');
     }
 
     const valid = await comparePassword(data.password, user.password_hash);
     if (!valid) {
+      // Record failed login - invalid password
+      await recordLoginFailure(data.email, ipAddress || 'unknown', 'Invalid password', user.id);
       throw new Error('Invalid credentials');
     }
 
     // Get all accounts owned by user
     const accounts = await accountRepo.findByUserId(user.id);
     const accountIds = accounts.map(a => a.id);
+
+    // Record successful login
+    await userRepo.recordLoginEvent(user.id, ipAddress || 'unknown');
 
     const token = generateBaseToken(user.id, user.email, accountIds);
 

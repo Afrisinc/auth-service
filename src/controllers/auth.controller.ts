@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthService } from '../services/auth.service';
 import { ApiResponseHelper } from '../utils/apiResponse';
 import { getErrorMessage } from '../utils/errorHandler';
+import { getClientIP } from '../utils/securityRecorder';
 
 const service = new AuthService();
 
@@ -16,7 +17,8 @@ export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
 
 export async function loginUser(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const result = await service.login(req.body);
+    const ipAddress = getClientIP(req);
+    const result = await service.login(req.body, ipAddress);
     return ApiResponseHelper.success(reply, 'Login successful', result);
   } catch (err: unknown) {
     return ApiResponseHelper.invalidCredentials(reply, getErrorMessage(err));
