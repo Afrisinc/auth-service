@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SecurityService } from '../services/security.service';
 import { ApiResponseHelper } from '../utils/apiResponse';
 import { getErrorMessage } from '../utils/errorHandler';
+import { SearchQuery } from '@/types/shared';
 
 const service = new SecurityService();
 
@@ -34,6 +35,28 @@ export async function getSecurityOverview(req: FastifyRequest, reply: FastifyRep
     });
 
     return ApiResponseHelper.success(reply, 'Security overview retrieved successfully', result);
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}
+
+export async function getLoginEvents(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { page = 1, limit = 10, search, sortBy = 'desc' } = req.query as SearchQuery;
+
+    // Validate pagination parameters
+    const pageNum = Math.max(1, Math.min(page || 1, 10000));
+    const limitNum = Math.max(1, Math.min(limit || 10, 100));
+
+    const result = await service.getLoginEvents({
+      page: pageNum,
+      limit: limitNum,
+      search: search?.trim(),
+      sortBy,
+    });
+
+    return ApiResponseHelper.success(reply, 'Login events retrieved successfully', result);
   } catch (err: unknown) {
     const message = getErrorMessage(err);
     return ApiResponseHelper.badRequest(reply, message);

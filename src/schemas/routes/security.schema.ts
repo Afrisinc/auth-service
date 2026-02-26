@@ -1,5 +1,85 @@
 import { ErrorResponseSchema } from '../responses/common.schema';
 
+export const GetLoginEventsSchema = {
+  tags: ['security'],
+  summary: 'Get login events',
+  description:
+    'Returns combined login events and failures with support for pagination, date sorting, and search by name, phone, or IP address',
+  querystring: {
+    type: 'object',
+    properties: {
+      page: {
+        type: 'integer',
+        minimum: 1,
+        default: 1,
+        description: 'Page number for pagination',
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        default: 10,
+        description: 'Number of records per page',
+      },
+      search: {
+        type: 'string',
+        description: 'Search by user name (first/last), phone number, or IP address',
+      },
+      sortBy: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        default: 'desc',
+        description: 'Sort by date - "asc" for oldest first, "desc" for newest first',
+      },
+    },
+  },
+  security: [{ bearerAuth: [] }],
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Login events retrieved successfully' },
+        resp_code: { type: 'integer', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string', example: 'event-123' },
+                  type: { type: 'string', enum: ['login_event', 'login_failure'], example: 'login_event' },
+                  userId: { type: 'string', example: 'user-456' },
+                  email: { type: 'string', example: 'user@example.com' },
+                  name: { type: 'string', example: 'John Doe' },
+                  phone: { type: 'string', example: '1234567890' },
+                  status: { type: 'string', example: 'success' },
+                  ip: { type: 'string', example: '192.168.1.100' },
+                  reason: { type: 'string', example: 'Invalid password' },
+                  createdAt: { type: 'string', format: 'date-time', example: '2026-02-26T10:30:00.000Z' },
+                },
+              },
+            },
+            pagination: {
+              type: 'object',
+              properties: {
+                page: { type: 'integer', example: 1 },
+                limit: { type: 'integer', example: 10 },
+                total: { type: 'integer', example: 50 },
+                pages: { type: 'integer', example: 5 },
+              },
+            },
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
+    401: ErrorResponseSchema,
+  },
+} as const;
+
 export const GetSecurityOverviewSchema = {
   tags: ['security'],
   summary: 'Get security overview',

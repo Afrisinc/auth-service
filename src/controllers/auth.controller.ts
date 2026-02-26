@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { ApiResponseHelper } from '../utils/apiResponse';
 import { getErrorMessage } from '../utils/errorHandler';
 import { getClientIP } from '../utils/securityRecorder';
+import { LoginUserRequest } from '@/types/auth';
 
 const service = new AuthService();
 
@@ -18,7 +19,8 @@ export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
 export async function loginUser(req: FastifyRequest, reply: FastifyReply) {
   try {
     const ipAddress = getClientIP(req);
-    const result = await service.login(req.body, ipAddress);
+    const request = req.body as LoginUserRequest;
+    const result = await service.login(request, ipAddress);
     return ApiResponseHelper.success(reply, 'Login successful', result);
   } catch (err: unknown) {
     return ApiResponseHelper.invalidCredentials(reply, getErrorMessage(err));
