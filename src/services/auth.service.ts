@@ -10,6 +10,7 @@ import {
 import { env } from '../config/env';
 import { prisma } from '../database/prismaClient';
 import { recordLoginFailure } from '../utils/securityRecorder';
+import { LoginUserRequest } from '@/types/auth';
 
 const userRepo = new UserRepository();
 const accountRepo = new AccountRepository();
@@ -60,7 +61,7 @@ export class AuthService {
     };
   }
 
-  async login(data: any, ipAddress?: string) {
+  async login(data: LoginUserRequest, ipAddress?: string) {
     const user = await userRepo.findByEmail(data.email);
     if (!user) {
       // Record failed login - user not found

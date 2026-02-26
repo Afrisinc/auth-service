@@ -7,12 +7,7 @@ const securityService = new SecurityService();
  * Records a failed login attempt for security monitoring
  * Silently fails to avoid disrupting the authentication flow
  */
-export async function recordLoginFailure(
-  email: string,
-  ipAddress: string,
-  reason: string,
-  userId?: string
-) {
+export async function recordLoginFailure(email: string, ipAddress: string, reason: string, userId?: string) {
   try {
     await securityService.recordFailedLogin({
       email,

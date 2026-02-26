@@ -77,4 +77,8 @@ export class SecurityService {
   async revokeToken(token_id: string) {
     return securityRepo.revokeToken(token_id);
   }
+
+  async getLoginEvents(options: { page: number; limit: number; search?: string; sortBy?: 'asc' | 'desc' }) {
+    return securityRepo.getLoginEvents(options);
+  }
 }
