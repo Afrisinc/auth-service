@@ -2,6 +2,7 @@ import {
   ForgotPasswordRequestSchema,
   LoginRequestSchema,
   RegisterRequestSchema,
+  OAuthExchangeRequestSchema,
 } from '../requests/auth.schema';
 import {
   ForgotPasswordResponseSchema,
@@ -9,6 +10,7 @@ import {
   RegisterResponseSchema,
   ResetPasswordResponseSchema,
   VerifyResponseSchema,
+  OAuthExchangeResponseSchema,
 } from '../responses/auth.schema';
 import { ErrorResponseSchema } from '../responses/common.schema';
 
@@ -93,5 +95,16 @@ export const VerifyRouteSchema = {
   response: {
     200: VerifyResponseSchema,
     401: ErrorResponseSchema,
+  },
+} as const;
+
+export const OAuthExchangeRouteSchema = {
+  tags: ['oauth'],
+  summary: 'Exchange authorization code for token',
+  description: 'Exchange a short-lived authorization code received from login for a JWT token',
+  body: OAuthExchangeRequestSchema,
+  response: {
+    200: OAuthExchangeResponseSchema,
+    400: ErrorResponseSchema,
   },
 } as const;

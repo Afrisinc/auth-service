@@ -13,6 +13,19 @@ export class ProductRepository {
     return prisma.product.findUnique({ where: { code } });
   }
 
+  async findByCodeWithCallbacks(code: string) {
+    return prisma.product.findUnique({
+      where: { code },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        baseUrl: true,
+        allowedCallbacks: true,
+      },
+    });
+  }
+
   async findMany(skip: number, take: number, where?: any) {
     return prisma.product.findMany({
       where,

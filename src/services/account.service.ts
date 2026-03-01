@@ -78,7 +78,8 @@ export class AccountService {
           plan: updatedEnrollment.plan,
           status: updatedEnrollment.status,
         };
-      } catch {
+      } catch (error: any) {
+        console.log('Provisioning failed:', error);
         // Mark enrollment as suspended on provisioning failure
         // Transaction will be rolled back automatically on error
         await accountProductRepo.update(enrollment.id, { status: 'SUSPENDED' }, txn);
@@ -87,18 +88,14 @@ export class AccountService {
     });
   }
 
-  private async callProductProvisioning(
-    productCode: string,
-    accountId: string,
-    accountType: string,
-    account: any
-  ) {
+  async callProductProvisioning(productCode: string, accountId: string, accountType: string, account: any) {
     // Map product code to service URL (can be made configurable)
     const serviceUrls: Record<string, string> = {
       notify: env.NOTIFY_SERVICE_URL,
       media: env.MEDIA_SERVICE_URL,
       billing: env.BILLING_SERVICE_URL,
     };
+    console.log('Provisioning failed:', serviceUrls, productCode);
 
     const baseUrl = serviceUrls[productCode] || `http://${productCode}-service`;
     const endpoint = `${baseUrl}/internal/provision`;

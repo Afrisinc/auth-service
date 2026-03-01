@@ -34,9 +34,38 @@ export const LoginResponseSchema = {
           items: { type: 'string' },
           description: 'List of account IDs user owns',
         },
-        token: { type: 'string', description: 'JWT authentication token (base token)' },
+        code: { type: 'string', description: 'Authorization code (short-lived, 10 minutes)' },
+        redirect: { type: 'boolean', description: 'Whether a redirect is required' },
+        callback: { type: 'string', description: 'Callback URL with authorization code for OAuth redirect' },
+        productCount: { type: 'number', description: 'Number of products user is enrolled in' },
       },
-      required: ['user_id', 'email', 'account_ids', 'token'],
+      required: ['user_id', 'email', 'account_ids', 'code', 'redirect', 'callback'],
+    },
+  },
+  required: ['success', 'resp_msg', 'resp_code', 'data'],
+} as const;
+
+export const OAuthExchangeResponseSchema = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', example: true },
+    resp_msg: { type: 'string', example: 'Token issued successfully' },
+    resp_code: { type: 'number', example: 2000 },
+    data: {
+      type: 'object',
+      properties: {
+        user_id: { type: 'string', description: 'User ID' },
+        email: { type: 'string', description: 'User email' },
+        account_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'List of account IDs user owns',
+        },
+        token: { type: 'string', description: 'JWT authentication token (base token)' },
+        token_type: { type: 'string', example: 'Bearer', description: 'Token type' },
+        expires_in: { type: 'number', example: 604800, description: 'Token expiration time in seconds' },
+      },
+      required: ['user_id', 'email', 'account_ids', 'token', 'token_type', 'expires_in'],
     },
   },
   required: ['success', 'resp_msg', 'resp_code', 'data'],

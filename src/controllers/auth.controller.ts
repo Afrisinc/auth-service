@@ -3,13 +3,14 @@ import { AuthService } from '../services/auth.service';
 import { ApiResponseHelper } from '../utils/apiResponse';
 import { getErrorMessage } from '../utils/errorHandler';
 import { getClientIP } from '../utils/securityRecorder';
-import { LoginUserRequest } from '@/types/auth';
+import { LoginUserRequest, SignupPayload } from '@/types/auth';
 
 const service = new AuthService();
 
 export async function registerUser(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const result = await service.register(req.body);
+    const request = req.body as SignupPayload;
+    const result = await service.register(request, req.server);
     return ApiResponseHelper.created(reply, 'User registered successfully', result);
   } catch (err: unknown) {
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
@@ -24,6 +25,21 @@ export async function loginUser(req: FastifyRequest, reply: FastifyReply) {
     return ApiResponseHelper.success(reply, 'Login successful', result);
   } catch (err: unknown) {
     return ApiResponseHelper.invalidCredentials(reply, getErrorMessage(err));
+  }
+}
+
+export async function exchangeCodeForToken(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { code } = req.body as { code: string };
+
+    if (!code) {
+      return ApiResponseHelper.badRequest(reply, 'Authorization code is required');
+    }
+
+    const result = await service.exchangeCodeForToken(code);
+    return ApiResponseHelper.success(reply, 'Token issued successfully', result);
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }
 }
 
@@ -47,6 +63,16 @@ export async function resetPassword(req: FastifyRequest, reply: FastifyReply) {
       newPassword,
     });
     return ApiResponseHelper.success(reply, 'Password reset successfully', result);
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}
+
+export async function verifyEmail(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { token } = (req.query as { token?: string }) || {};
+    const result = await service.verifyEmail(token);
+    return ApiResponseHelper.success(reply, 'Email verified successfully', result);
   } catch (err: unknown) {
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }

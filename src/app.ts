@@ -12,6 +12,7 @@ import { swaggerConfig, swaggerCspDirectives, swaggerUiConfig } from './config/s
 import { errorHandler } from './middlewares/errorHandler';
 import { registerRoutes } from './routes/index';
 import { logger } from './utils/logger';
+import rabbitPlugin from './plugins/rabbitPlugin';
 
 /**
  * Creates and configures the Fastify application instance
@@ -32,68 +33,41 @@ const createApp = async (): Promise<FastifyInstance> => {
   });
 
   try {
-    // Register CORS plugin for cross-origin requests
-    logger.debug({}, 'Registering CORS plugin');
-    const corsConfig = getCorsConfig();
-    await app.register(fastifyCors, corsConfig);
+    // Register security & CORS plugins
+    await app.register(fastifyCors, getCorsConfig());
 
-    // Register Multipart for file uploads
-    logger.debug({}, 'Registering Multipart plugin for file uploads');
-    await app.register(fastifyMultipart, {
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
-      },
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: { directives: swaggerCspDirectives },
+      hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+      frameguard: { action: 'deny' },
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     });
 
-    // ESM-compatible __dirname
-    // Register static file serving for uploads directory (use process.cwd() for absolute path)
-    logger.debug({}, 'Registering static file serving for uploads directory');
+    // Register file handling plugins
+    await app.register(fastifyMultipart, {
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    });
+
     await app.register(fastifyStatic, {
       root: path.resolve(process.cwd(), 'uploads'),
       prefix: '/uploads/',
     });
 
-    // Register Helmet for security headers
-    logger.debug({}, 'Registering Helmet security plugin');
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: swaggerCspDirectives,
-      },
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true,
-      },
-      frameguard: {
-        action: 'deny',
-      },
-      referrerPolicy: {
-        policy: 'strict-origin-when-cross-origin',
-      },
-    });
-
-    // Register Swagger documentation plugin
-    logger.debug({}, 'Registering Swagger documentation plugin');
+    // Register API documentation plugins
     await app.register(fastifySwagger, swaggerConfig);
-
-    // Register Swagger UI plugin
-    logger.debug({}, 'Registering Swagger UI plugin');
     await app.register(fastifySwaggerUI, swaggerUiConfig);
+
+    // Register message queue plugin
+    await app.register(rabbitPlugin);
 
     // Set global error handler
     app.setErrorHandler(errorHandler);
 
-    // Register all application routes
-    logger.debug({}, 'Registering application routes');
+    // Register application routes
     await registerRoutes(app);
 
-    // Post-registration hooks
-    logger.info(
-      {
-        routes: app.printRoutes(),
-      },
-      'Application routes registered successfully'
-    );
+    // Log successful initialization
+    logger.info({ routes: app.printRoutes() }, 'Application initialized successfully');
   } catch (error) {
     logger.error(
       {

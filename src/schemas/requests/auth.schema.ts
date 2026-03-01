@@ -1,34 +1,97 @@
+export type AccountType = 'personal' | 'company';
+
+export interface SignupPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  location?: string;
+  password: string;
+  account_type: AccountType;
+  account_name?: string;
+  product_code?: string;
+  displayName?: string;
+  organizationName: string;
+  jobTitle?: string;
+  industry?: string;
+  companyEmail: string;
+  companySize?: string;
+  website?: string;
+}
+
 export const RegisterRequestSchema = {
   type: 'object',
   properties: {
+    firstName: {
+      type: 'string',
+      description: 'User first name',
+    },
+    lastName: {
+      type: 'string',
+      description: 'User last name',
+    },
     email: {
       type: 'string',
       format: 'email',
       description: 'User email address for registration',
+    },
+    phone: {
+      type: 'string',
+      description: 'User phone number',
+    },
+    location: {
+      type: 'string',
+      description: 'User location/address (optional)',
     },
     password: {
       type: 'string',
       minLength: 6,
       description: 'User password (minimum 6 characters)',
     },
-    firstName: {
+    account_type: {
       type: 'string',
-      description: 'User first name (optional)',
+      enum: ['personal', 'company'],
+      description: 'Account type',
     },
-    lastName: {
+    account_name: {
       type: 'string',
-      description: 'User last name (optional)',
+      description: 'Account name',
     },
-    phone: {
+    product_code: {
       type: 'string',
-      description: 'User phone number (optional)',
+      description: 'Product code (optional)',
     },
-    location: {
+    displayName: {
       type: 'string',
-      description: 'User location/address (optional)',
+      description: 'Display name (optional)',
+    },
+    organizationName: {
+      type: 'string',
+      description: 'Organization name',
+    },
+    jobTitle: {
+      type: 'string',
+      description: 'Job title (optional)',
+    },
+    industry: {
+      type: 'string',
+      description: 'Industry (optional)',
+    },
+    companyEmail: {
+      type: 'string',
+      format: 'email',
+      description: 'Company email',
+    },
+    companySize: {
+      type: 'string',
+      description: 'Company size (optional)',
+    },
+    website: {
+      type: 'string',
+      description: 'Website (optional)',
     },
   },
-  required: ['email', 'password'],
+  required: ['firstName', 'lastName', 'email', 'password', 'account_type', 'phone'],
   additionalProperties: false,
 } as const;
 
@@ -44,6 +107,10 @@ export const LoginRequestSchema = {
       type: 'string',
       description: 'User password',
     },
+    product_code: {
+      type: 'string',
+      description: 'Product code',
+    }
   },
   required: ['email', 'password'],
   additionalProperties: false,
@@ -76,5 +143,17 @@ export const ResetPasswordRequestSchema = {
     },
   },
   required: ['token', 'newPassword'],
+  additionalProperties: false,
+} as const;
+
+export const OAuthExchangeRequestSchema = {
+  type: 'object',
+  properties: {
+    code: {
+      type: 'string',
+      description: 'Authorization code from login response',
+    },
+  },
+  required: ['code'],
   additionalProperties: false,
 } as const;
