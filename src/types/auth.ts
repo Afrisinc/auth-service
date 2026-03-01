@@ -1,10 +1,7 @@
-export interface RegisterUserRequest {
-  username: string;
-  email: string;
-  password: string;
-}
+export type { SignupPayload } from '../schemas/requests/auth.schema';
 
 export interface LoginUserRequest {
   email: string;
   password: string;
+  product_code?: string;
 }

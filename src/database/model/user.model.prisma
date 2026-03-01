@@ -37,6 +37,7 @@ model User {
   phone             String?
   location          String?
   status            UserStatus    @default(ACTIVE)
+  email_verified    Boolean   @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -46,6 +47,7 @@ model User {
   loginEvents       LoginEvent[]
   loginFailures     LoginFailure[]    @relation("LoginFailures")
   tokens            Token[]           @relation("Tokens")
+  authorizationCodes AuthorizationCode[]
 
   @@map("users")
 }
@@ -108,6 +110,8 @@ model Product {
   name              String
   code              String    @unique
   description       String?
+  baseUrl           String    @default("")    // e.g., "https://notify.afrisinc.com"
+  allowedCallbacks  Json      @default("[]") // Array of allowed redirect URLs: ["https://notify.afrisinc.com/auth/callback"]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -189,4 +193,25 @@ model Token {
   @@index([issued_at])
   @@index([user_id, issued_at])
   @@map("tokens")
+}
+
+model AuthorizationCode {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  user_id         String
+  product_code    String?
+  redirect_uri    String?
+  scope           String?   // Comma-separated scopes
+  issued_at       DateTime  @default(now())
+  expires_at      DateTime
+  used_at         DateTime?
+
+  // Relations
+  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([user_id])
+  @@index([expires_at])
+  @@index([used_at])
+  @@map("authorization_codes")
 }

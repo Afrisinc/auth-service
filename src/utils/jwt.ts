@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import { env } from '../config/env';
 
 // Base token issued on login
@@ -68,4 +69,17 @@ export const verifyToken = (token: string) => {
   } catch {
     return null;
   }
+};
+
+// Generate authorization code for OAuth flow (short-lived, 10 minutes)
+export const generateAuthorizationCode = (): string => {
+  // Generate 32 bytes of random data, encode as hex (64 character string)
+  return randomBytes(32).toString('hex');
+};
+
+// Calculate expiration time for authorization code (10 minutes)
+export const getAuthCodeExpiresAt = (): Date => {
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+  return expiresAt;
 };
