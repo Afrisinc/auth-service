@@ -8,13 +8,13 @@ RUN apt-get update && apt-get install -y libssl1.1 bash
 
 # Enable Corepack for runtime commands (docker exec yarn …)
 RUN corepack enable \
- && corepack prepare yarn@4.12.0 --activate
+ && corepack prepare pnpm@latest --activate
 
 # Copy dependencies
-COPY package.json yarn.lock* ./
+COPY package.json pnpm-lock.* ./
 
-# Install dependencies using Yarn 4
-RUN yarn install
+# Install dependencies using pnpm
+RUN pnpm install
 
 # Copy rest of the code
 COPY . .
@@ -24,7 +24,7 @@ RUN npm install -g prisma@5.22.0 @prisma/client@5.22.0
 RUN npx prisma generate
 
 # Build app (if TypeScript)
-RUN yarn build
+RUN pnpm build
 
 # Final image
 FROM node:20-bullseye
