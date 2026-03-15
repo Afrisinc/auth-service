@@ -178,54 +178,59 @@ export class AuthService {
     let redirectUrl = env.APP_URL;
     let productCount = 0;
 
-    // Check user's product enrollments
-    if (accountIds.length > 0) {
-      const enrollments = await prisma.accountProduct.findMany({
-        where: {
-          account_id: { in: accountIds },
-          status: 'ACTIVE',
-        },
-        include: {
-          product: true,
-        },
-      });
-
-      productCount = enrollments.length;
-      const uniqueProductCodes = [...new Set(enrollments.map(e => e.product.code))];
-
-      if (data.product_code) {
-        // If product code provided in login request, validate and use it
-        if (!uniqueProductCodes.includes(data.product_code)) {
-          throw new Error('User not enrolled in requested product');
-        }
-
-        const product = (await productRepo.findByCodeWithCallbacks(data.product_code)) as any;
-        if (!product) {
-          throw new Error('Product not found');
-        }
-        // Use product's configured callback URL, or fall back to baseUrl
-        const callbacks = Array.isArray(product.allowedCallbacks) ? product.allowedCallbacks : [];
-        redirectUrl = callbacks.length > 0 ? callbacks[0] : product.baseUrl + '/dashboard';
-      } else {
-        // No product specified, determine redirect based on product count
-        if (uniqueProductCodes.length === 1) {
-          // Single product: redirect to product dashboard using its callback URL
-          const product = (await productRepo.findByCodeWithCallbacks(uniqueProductCodes[0])) as any;
-          if (product) {
-            const callbacks = Array.isArray(product.allowedCallbacks) ? product.allowedCallbacks : [];
-            redirectUrl = callbacks.length > 0 ? callbacks[0] : product.baseUrl + '/dashboard';
-          }
-        } else if (uniqueProductCodes.length > 1) {
-          // Multiple products: redirect to product selector in our app
-          redirectUrl = env.APP_URL + '/products';
-        } else {
-          // No products: redirect to onboarding
-          redirectUrl = env.APP_URL + '/get-started';
-        }
-      }
+    // Check if user is admin and use admin callback URL
+    if (data.email === env.ADMIN_EMAIL && env.ADMIN_CALLBACK_URL) {
+      redirectUrl = env.ADMIN_CALLBACK_URL;
     } else {
-      // No accounts/products: redirect to onboarding
-      redirectUrl = env.APP_URL + '/get-started';
+      // Check user's product enrollments
+      if (accountIds.length > 0) {
+        const enrollments = await prisma.accountProduct.findMany({
+          where: {
+            account_id: { in: accountIds },
+            status: 'ACTIVE',
+          },
+          include: {
+            product: true,
+          },
+        });
+
+        productCount = enrollments.length;
+        const uniqueProductCodes = [...new Set(enrollments.map(e => e.product.code))];
+
+        if (data.product_code) {
+          // If product code provided in login request, validate and use it
+          if (!uniqueProductCodes.includes(data.product_code)) {
+            throw new Error('User not enrolled in requested product');
+          }
+
+          const product = (await productRepo.findByCodeWithCallbacks(data.product_code)) as any;
+          if (!product) {
+            throw new Error('Product not found');
+          }
+          // Use product's configured callback URL, or fall back to baseUrl
+          const callbacks = Array.isArray(product.allowedCallbacks) ? product.allowedCallbacks : [];
+          redirectUrl = callbacks.length > 0 ? callbacks[0] : product.baseUrl + '/dashboard';
+        } else {
+          // No product specified, determine redirect based on product count
+          if (uniqueProductCodes.length === 1) {
+            // Single product: redirect to product dashboard using its callback URL
+            const product = (await productRepo.findByCodeWithCallbacks(uniqueProductCodes[0])) as any;
+            if (product) {
+              const callbacks = Array.isArray(product.allowedCallbacks) ? product.allowedCallbacks : [];
+              redirectUrl = callbacks.length > 0 ? callbacks[0] : product.baseUrl + '/dashboard';
+            }
+          } else if (uniqueProductCodes.length > 1) {
+            // Multiple products: redirect to product selector in our app
+            redirectUrl = env.APP_URL + '/products';
+          } else {
+            // No products: redirect to onboarding
+            redirectUrl = env.APP_URL + '/get-started';
+          }
+        }
+      } else {
+        // No accounts/products: redirect to onboarding
+        redirectUrl = env.APP_URL + '/get-started';
+      }
     }
 
     // Generate authorization code instead of returning token directly (OAuth Secure Redirect Pattern)

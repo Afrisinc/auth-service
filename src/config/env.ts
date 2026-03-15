@@ -12,4 +12,6 @@ export const env = {
   TENANT_ID: process.env.TENANT_ID || 'default',
   COMPANY_NAME: process.env.COMPANY_NAME || 'Afrisinc',
   SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || 'support@afrisinc.com',
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+  ADMIN_CALLBACK_URL: process.env.ADMIN_CALLBACK_URL,
 } as const;
