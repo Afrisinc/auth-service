@@ -14,6 +14,10 @@ enum ProductStatus {
   PROVISIONING
   ACTIVE
   SUSPENDED
+  DEPRECATED
+  COMING_SOON
+  BETA
+  LIVE
 }
 
 enum ProductPlan {
@@ -112,6 +116,7 @@ model Product {
   description       String?
   baseUrl           String    @default("")    // e.g., "https://notify.afrisinc.com"
   allowedCallbacks  Json      @default("[]") // Array of allowed redirect URLs: ["https://notify.afrisinc.com/auth/callback"]
+  status            ProductStatus    @default(PROVISIONING)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

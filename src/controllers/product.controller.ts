@@ -57,9 +57,66 @@ export async function createProduct(req: FastifyRequest, reply: FastifyReply) {
     const result = await service.createProduct(name, code, description);
     return ApiResponseHelper.created(reply, 'Product created successfully', result);
   } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}
+
+export async function getProductById(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { productId } = req.params as { productId: string };
+    const result = await service.getProductById(productId);
+    return ApiResponseHelper.success(reply, 'Product retrieved successfully', result);
+  } catch (err: unknown) {
     const message = getErrorMessage(err);
-    if (message.includes('unique constraint')) {
-      return ApiResponseHelper.badRequest(reply, 'Product code already exists');
+    if (message === 'Product not found') {
+      return ApiResponseHelper.notFound(reply, message);
+    }
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}
+
+export async function getPublicProducts(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const statuses = ['LIVE', 'COMING_SOON', 'BETA'];
+    const result = await service.getProductsByStatuses(statuses);
+
+    // Return only public-safe fields for public display
+    const publicProducts = result.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      code: product.code,
+      description: product.description,
+      status: product.status,
+    }));
+
+    return ApiResponseHelper.success(reply, 'Products retrieved successfully', publicProducts);
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}
+
+export async function updateProduct(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { productId } = req.params as { productId: string };
+    const { name, description, status } = req.body as {
+      name?: string;
+      description?: string;
+      status?: string;
+    };
+
+    if (!name && !description && !status) {
+      return ApiResponseHelper.badRequest(
+        reply,
+        'At least one field (name, description, status) is required'
+      );
+    }
+
+    const result = await service.updateProduct(productId, { name, description, status });
+    return ApiResponseHelper.success(reply, 'Product updated successfully', result);
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    if (message === 'Product not found') {
+      return ApiResponseHelper.notFound(reply, message);
     }
     return ApiResponseHelper.badRequest(reply, message);
   }
