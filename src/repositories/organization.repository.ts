@@ -38,9 +38,7 @@ export class OrganizationRepository {
       take,
       include: {
         members: {
-          select: {
-            id: true,
-            user_id: true,
+          include: {
             role: true,
             user: {
               select: {
@@ -50,9 +48,6 @@ export class OrganizationRepository {
                 lastName: true,
               },
             },
-          },
-          where: {
-            role: 'OWNER',
           },
         },
       },
@@ -75,12 +70,12 @@ export class OrganizationRepository {
     return prisma.organization.delete({ where: { id } });
   }
 
-  async addMember(organizationId: string, userId: string, role: string) {
+  async addMember(organizationId: string, userId: string, roleId: string) {
     return prisma.organizationMember.create({
       data: {
         organization_id: organizationId,
         user_id: userId,
-        role: role as any,
+        role_id: roleId,
       },
     });
   }

@@ -33,7 +33,8 @@
     "yarn": ">=1.22.22"
   },
   "prisma": {
-    "schema": "src/database/model"
+    "schema": "src/database/model",
+    "seed": "tsx src/database/seed.ts"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",

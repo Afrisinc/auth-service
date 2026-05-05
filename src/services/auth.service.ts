@@ -85,11 +85,11 @@ export class AuthService {
         });
 
         // Add user as OWNER member of the organization
-        await tx.organizationMember.create({
+        await (tx as any).organizationMember.create({
           data: {
             organization_id: organization.id,
             user_id: user.id,
-            role: 'OWNER',
+            legacy_role: 'OWNER',
           },
         });
 
@@ -284,10 +284,36 @@ export class AuthService {
     const accounts = await accountRepo.findByUserId(authCodeRecord.user_id);
     const accountIds = accounts.map(a => a.id);
 
+    // Get user's roleId from organization membership (if exists)
+    let roleId: string | null = null;
+    let roleName: string | null = null;
+    try {
+      const orgMember = await prisma.organizationMember.findFirst({
+        where: {
+          user_id: authCodeRecord.user_id,
+        },
+        select: {
+          role_id: true,
+          role: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+      if (orgMember?.role_id) {
+        roleId = orgMember.role_id;
+        roleName = orgMember.role?.name ?? null;
+      }
+    } catch {
+      // If organization member query fails, continue without roleId
+    }
+
     // Generate the JWT token
     const token = generateBaseToken(authCodeRecord.user_id, authCodeRecord.user.email, accountIds);
 
-    return {
+    const response: any = {
       user_id: authCodeRecord.user_id,
       email: authCodeRecord.user.email,
       account_ids: accountIds,
@@ -295,6 +321,16 @@ export class AuthService {
       token_type: 'Bearer',
       expires_in: 604800, // 7 days in seconds
     };
+
+    // Include roleId and role if available
+    if (roleId) {
+      response.role_id = roleId;
+    }
+    if (roleName) {
+      response.role = roleName;
+    }
+
+    return response;
   }
 
   async forgotPassword(data: any) {

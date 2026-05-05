@@ -64,6 +64,8 @@ export const OAuthExchangeResponseSchema = {
         token: { type: 'string', description: 'JWT authentication token (base token)' },
         token_type: { type: 'string', example: 'Bearer', description: 'Token type' },
         expires_in: { type: 'number', example: 604800, description: 'Token expiration time in seconds' },
+        role_id: { type: 'string', description: 'User role ID (if user has organization membership)', nullable: true },
+        role: { type: 'string', description: 'User role name (e.g., SUPER_ADMIN, OPS_MANAGER)', nullable: true },
       },
       required: ['user_id', 'email', 'account_ids', 'token', 'token_type', 'expires_in'],
     },

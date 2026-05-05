@@ -29,12 +29,12 @@ export class OrganizationService {
         },
       });
 
-      // Add creator as owner in organization_members
-      await tx.organizationMember.create({
+      // Add creator as organization member (role assigned separately via admin endpoints)
+      await (tx as any).organizationMember.create({
         data: {
           organization_id: organization.id,
           user_id: userId,
-          role: 'OWNER',
+          legacy_role: 'OWNER',
         },
       });
 
@@ -52,13 +52,14 @@ export class OrganizationService {
     return orgRepo.findByIdWithMembers(organizationId);
   }
 
-  async addMember(organizationId: string, userId: string, role: string) {
-    const member = await orgRepo.addMember(organizationId, userId, role);
+  async addMember(organizationId: string, userId: string, roleId: string) {
+    const member = await orgRepo.addMember(organizationId, userId, roleId);
+    const memberData = member as any;
     return {
-      member_id: member.id,
-      organization_id: member.organization_id,
-      user_id: member.user_id,
-      role: member.role,
+      member_id: memberData.id,
+      organization_id: memberData.organization_id,
+      user_id: memberData.user_id,
+      role_id: memberData.role_id,
     };
   }
 
@@ -77,17 +78,21 @@ export class OrganizationService {
       return [];
     }
 
-    return org.members.map(member => ({
-      id: member.id,
-      organization_id: member.organization_id,
-      user_id: member.user_id,
-      role: member.role,
-      email: member.user?.email,
-      firstName: member.user?.firstName,
-      lastName: member.user?.lastName,
-      phone: member.user?.phone,
-      status: member.user?.status,
-    }));
+    return org.members.map(member => {
+      const memberData = member as any;
+      return {
+        id: memberData.id,
+        organization_id: memberData.organization_id,
+        user_id: memberData.user_id,
+        role_id: memberData.role_id,
+        role_name: memberData.role?.name,
+        email: memberData.user?.email,
+        firstName: memberData.user?.firstName,
+        lastName: memberData.user?.lastName,
+        phone: memberData.user?.phone,
+        status: memberData.user?.status,
+      };
+    });
   }
 
   async updateOrganization(organizationId: string, data: any) {
@@ -101,7 +106,9 @@ export class OrganizationService {
 
   async validateUserIsOrgOwner(organizationId: string, userId: string) {
     const member = await orgRepo.getMember(organizationId, userId);
-    return member?.role === 'OWNER';
+    if (!member) return false;
+    const memberData = member as any;
+    return memberData.legacy_role === 'OWNER';
   }
 
   async getAllOrganizations(page: number = 1, limit: number = 10, search?: string, status?: string) {
