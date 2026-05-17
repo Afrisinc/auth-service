@@ -153,7 +153,10 @@ export class AdminService {
     return permissionRepo.findByCategory(category);
   }
 
-  async updatePermission(permissionId: string, data: { name?: string; description?: string; category?: string }) {
+  async updatePermission(
+    permissionId: string,
+    data: { name?: string; description?: string; category?: string }
+  ) {
     const permission = await permissionRepo.findById(permissionId);
     if (!permission) {
       throw new Error('PERMISSION_NOT_FOUND');

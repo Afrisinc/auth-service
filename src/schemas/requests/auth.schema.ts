@@ -110,7 +110,7 @@ export const LoginRequestSchema = {
     product_code: {
       type: 'string',
       description: 'Product code',
-    }
+    },
   },
   required: ['email', 'password'],
   additionalProperties: false,

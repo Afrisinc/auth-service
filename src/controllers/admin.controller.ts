@@ -217,7 +217,11 @@ export async function getPermission(req: FastifyRequest, reply: FastifyReply) {
 
 export async function getAllPermissions(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const { page = 1, limit = 20, category } = req.query as {
+    const {
+      page = 1,
+      limit = 20,
+      category,
+    } = req.query as {
       page?: number;
       limit?: number;
       category?: string;
@@ -326,7 +330,11 @@ export async function getSidebarItem(req: FastifyRequest, reply: FastifyReply) {
 
 export async function getAllSidebarItems(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const { page = 1, limit = 20, parentId } = req.query as {
+    const {
+      page = 1,
+      limit = 20,
+      parentId,
+    } = req.query as {
       page?: number;
       limit?: number;
       parentId?: string;

@@ -864,136 +864,279 @@ async function main() {
     ]);
     logger.info(`Created/updated ${permissions.length} permissions`);
 
-    // 3. CREATE SIDEBAR ITEMS (parents first, then children)
+    // 3. CREATE SIDEBAR ITEMS — mirroring the platform-frontend page IDs exactly
     logger.info('Creating sidebar items...');
 
-    // Stage 1: Create top-level items
-    const topLevelItems = await Promise.all([
+    // Icon names match the Lucide component names used in AppSidebar ICON_REGISTRY.
+    // Paths map 1-to-1 to the platform frontend page IDs via AppSidebar PATH_MAP.
+    const sidebarItems = await Promise.all([
       prisma.sidebarItem.upsert({
         where: { id: 'sidebar-dashboard' },
-        update: {},
-        create: { id: 'sidebar-dashboard', label: 'Dashboard', icon: 'layout-dashboard', path: '/dashboard', order: 1, isActive: true, parentId: null },
+        update: { label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard', order: 1 },
+        create: {
+          id: 'sidebar-dashboard',
+          label: 'Dashboard',
+          icon: 'LayoutDashboard',
+          path: '/dashboard',
+          order: 1,
+          isActive: true,
+          parentId: null,
+        },
       }),
       prisma.sidebarItem.upsert({
-        where: { id: 'sidebar-users' },
-        update: {},
-        create: { id: 'sidebar-users', label: 'Users', icon: 'users', path: '/users', order: 2, isActive: true, parentId: null },
+        where: { id: 'sidebar-customers' },
+        update: { label: 'Customers', icon: 'Users', path: '/customers', order: 2 },
+        create: {
+          id: 'sidebar-customers',
+          label: 'Customers',
+          icon: 'Users',
+          path: '/customers',
+          order: 2,
+          isActive: true,
+          parentId: null,
+        },
       }),
       prisma.sidebarItem.upsert({
-        where: { id: 'sidebar-organization' },
-        update: {},
-        create: { id: 'sidebar-organization', label: 'Organization', icon: 'building', path: '/organization', order: 3, isActive: true, parentId: null },
+        where: { id: 'sidebar-tickets' },
+        update: { label: 'Support Tickets', icon: 'Ticket', path: '/tickets', order: 3 },
+        create: {
+          id: 'sidebar-tickets',
+          label: 'Support Tickets',
+          icon: 'Ticket',
+          path: '/tickets',
+          order: 3,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-reports' },
+        update: { label: 'Reports & Analytics', icon: 'BarChart3', path: '/reports', order: 4 },
+        create: {
+          id: 'sidebar-reports',
+          label: 'Reports & Analytics',
+          icon: 'BarChart3',
+          path: '/reports',
+          order: 4,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-user-management' },
+        update: { label: 'User Management', icon: 'UserCog', path: '/user-management', order: 5 },
+        create: {
+          id: 'sidebar-user-management',
+          label: 'User Management',
+          icon: 'UserCog',
+          path: '/user-management',
+          order: 5,
+          isActive: true,
+          parentId: null,
+        },
       }),
       prisma.sidebarItem.upsert({
         where: { id: 'sidebar-billing' },
-        update: {},
-        create: { id: 'sidebar-billing', label: 'Billing', icon: 'credit-card', path: '/billing', order: 4, isActive: true, parentId: null },
+        update: { label: 'Billing', icon: 'CreditCard', path: '/billing', order: 6 },
+        create: {
+          id: 'sidebar-billing',
+          label: 'Billing',
+          icon: 'CreditCard',
+          path: '/billing',
+          order: 6,
+          isActive: true,
+          parentId: null,
+        },
       }),
       prisma.sidebarItem.upsert({
-        where: { id: 'sidebar-support' },
-        update: {},
-        create: { id: 'sidebar-support', label: 'Support', icon: 'headphones', path: '/support', order: 5, isActive: true, parentId: null },
+        where: { id: 'sidebar-audit-log' },
+        update: { label: 'Audit Log', icon: 'ClipboardList', path: '/audit-log', order: 7 },
+        create: {
+          id: 'sidebar-audit-log',
+          label: 'Audit Log',
+          icon: 'ClipboardList',
+          path: '/audit-log',
+          order: 7,
+          isActive: true,
+          parentId: null,
+        },
       }),
       prisma.sidebarItem.upsert({
-        where: { id: 'sidebar-products' },
-        update: {},
-        create: { id: 'sidebar-products', label: 'Products', icon: 'box', path: '/products', order: 6, isActive: true, parentId: null },
+        where: { id: 'sidebar-platform-settings' },
+        update: { label: 'Platform Settings', icon: 'ShieldCheck', path: '/platform-settings', order: 8 },
+        create: {
+          id: 'sidebar-platform-settings',
+          label: 'Platform Settings',
+          icon: 'ShieldCheck',
+          path: '/platform-settings',
+          order: 8,
+          isActive: true,
+          parentId: null,
+        },
       }),
       prisma.sidebarItem.upsert({
         where: { id: 'sidebar-settings' },
-        update: {},
-        create: { id: 'sidebar-settings', label: 'Settings', icon: 'settings', path: '/settings', order: 7, isActive: true, parentId: null },
+        update: { label: 'Settings', icon: 'Settings2', path: '/settings', order: 9 },
+        create: {
+          id: 'sidebar-settings',
+          label: 'Settings',
+          icon: 'Settings2',
+          path: '/settings',
+          order: 9,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-admin-roles' },
+        update: { label: 'Manage Roles', icon: 'ShieldCheck', path: '/admin-roles', order: 10 },
+        create: {
+          id: 'sidebar-admin-roles',
+          label: 'Manage Roles',
+          icon: 'ShieldCheck',
+          path: '/admin-roles',
+          order: 10,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-admin-permissions' },
+        update: { label: 'Manage Permissions', icon: 'ClipboardList', path: '/admin-permissions', order: 11 },
+        create: {
+          id: 'sidebar-admin-permissions',
+          label: 'Manage Permissions',
+          icon: 'ClipboardList',
+          path: '/admin-permissions',
+          order: 11,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-admin-sidebar' },
+        update: { label: 'Manage Menus', icon: 'Layers', path: '/admin-sidebar', order: 12 },
+        create: {
+          id: 'sidebar-admin-sidebar',
+          label: 'Manage Menus',
+          icon: 'Layers',
+          path: '/admin-sidebar',
+          order: 12,
+          isActive: true,
+          parentId: null,
+        },
       }),
     ]);
-
-    // Stage 2: Create child items after parents exist
-    const childItems = await Promise.all([
-      // Sub-items for Users
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-users-all' }, update: {}, create: { id: 'sidebar-users-all', label: 'All Users', icon: 'list', path: '/users/all', order: 1, isActive: true, parentId: 'sidebar-users' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-users-roles' }, update: {}, create: { id: 'sidebar-users-roles', label: 'Roles', icon: 'shield', path: '/users/roles', order: 2, isActive: true, parentId: 'sidebar-users' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-users-permissions' }, update: {}, create: { id: 'sidebar-users-permissions', label: 'Permissions', icon: 'lock', path: '/users/permissions', order: 3, isActive: true, parentId: 'sidebar-users' } }),
-      // Sub-items for Organization
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-org-info' }, update: {}, create: { id: 'sidebar-org-info', label: 'Organization Info', icon: 'info', path: '/organization/info', order: 1, isActive: true, parentId: 'sidebar-organization' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-org-members' }, update: {}, create: { id: 'sidebar-org-members', label: 'Members', icon: 'users-group', path: '/organization/members', order: 2, isActive: true, parentId: 'sidebar-organization' } }),
-      // Sub-items for Billing
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-billing-invoices' }, update: {}, create: { id: 'sidebar-billing-invoices', label: 'Invoices', icon: 'receipt', path: '/billing/invoices', order: 1, isActive: true, parentId: 'sidebar-billing' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-billing-subscriptions' }, update: {}, create: { id: 'sidebar-billing-subscriptions', label: 'Subscriptions', icon: 'repeat', path: '/billing/subscriptions', order: 2, isActive: true, parentId: 'sidebar-billing' } }),
-      // Sub-items for Support
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-support-tickets' }, update: {}, create: { id: 'sidebar-support-tickets', label: 'Tickets', icon: 'ticket', path: '/support/tickets', order: 1, isActive: true, parentId: 'sidebar-support' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-support-kb' }, update: {}, create: { id: 'sidebar-support-kb', label: 'Knowledge Base', icon: 'book', path: '/support/knowledge-base', order: 2, isActive: true, parentId: 'sidebar-support' } }),
-      // Sub-items for Settings
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-settings-system' }, update: {}, create: { id: 'sidebar-settings-system', label: 'System', icon: 'sliders', path: '/settings/system', order: 1, isActive: true, parentId: 'sidebar-settings' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-settings-security' }, update: {}, create: { id: 'sidebar-settings-security', label: 'Security', icon: 'shield-alert', path: '/settings/security', order: 2, isActive: true, parentId: 'sidebar-settings' } }),
-      prisma.sidebarItem.upsert({ where: { id: 'sidebar-settings-logs' }, update: {}, create: { id: 'sidebar-settings-logs', label: 'Logs', icon: 'file-text', path: '/settings/logs', order: 3, isActive: true, parentId: 'sidebar-settings' } }),
-    ]);
-
-    const sidebarItems = [...topLevelItems, ...childItems];
     logger.info(`Created/updated ${sidebarItems.length} sidebar items`);
 
     // 4. ASSIGN PERMISSIONS TO ROLES
     logger.info('Assigning permissions to roles...');
 
-    // SUPER_ADMIN: All permissions
+    // Helper: resolve permission UUIDs by name list
+    const permsFor = (roleId: string, names: string[]) =>
+      permissions.filter(p => names.includes(p.name)).map(p => ({ role_id: roleId, permission_id: p.id }));
+
+    // SUPER_ADMIN — everything: user mgmt, roles, products, billing, support, analytics, settings
     const superAdminPerms = permissions.map(p => ({ role_id: roles[0].id, permission_id: p.id }));
 
-    // OPS_MANAGER: Operations, products, customers, users assignment
-    const opsPerms = permissions
-      .filter(p => {
-        const isAllowed = ['dashboard', 'analytics', 'settings', 'product', 'customer'].includes(p.category || '');
-        const isSpecific = ['view_all_products', 'assign_users', 'export_data'].includes(p.name || '');
-        return isAllowed || isSpecific;
-      })
-      .map(p => ({ role_id: roles[1].id, permission_id: p.id }));
+    // OPS_MANAGER — runs day-to-day operations across all products and teams
+    const opsPerms = permsFor(roles[1].id, [
+      'manage_users',
+      'view_users',
+      'assign_users',
+      'view_all_products',
+      'view_products',
+      'configure_product',
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'view_reports',
+      'view_audit',
+      'export_data',
+    ]);
 
-    // FINANCE_ADMIN: Billing and analytics only
-    const financePerms = permissions
-      .filter(p => ['dashboard', 'billing', 'analytics'].includes(p.category || ''))
-      .map(p => ({ role_id: roles[2].id, permission_id: p.id }));
+    // FINANCE_ADMIN — billing, subscriptions, and financial reports only
+    const financePerms = permsFor(roles[2].id, [
+      'view_billing',
+      'manage_billing',
+      'manage_subscriptions',
+      'view_reports',
+      'export_data',
+    ]);
 
-    // PRODUCT_MANAGER: Products, customers, analytics, support
-    const productPerms = permissions
-      .filter(p => {
-        const isAllowed = ['dashboard', 'product', 'analytics', 'support', 'customer'].includes(p.category || '');
-        const isSpecific = ['configure_product', 'view_reports'].includes(p.name || '');
-        return isAllowed || isSpecific;
-      })
-      .map(p => ({ role_id: roles[3].id, permission_id: p.id }));
+    // PRODUCT_MANAGER — owns one or more products; can configure, assign users, create new products
+    const productPerms = permsFor(roles[3].id, [
+      'create_products',
+      'manage_products',
+      'view_products',
+      'view_all_products',
+      'configure_product',
+      'assign_users',
+      'view_users',
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'access_api_keys',
+      'view_reports',
+      'export_data',
+    ]);
 
-    // SUPPORT_LEAD: Support, customers, analytics, user management
-    const supportLeadPerms = permissions
-      .filter(p => {
-        const isAllowed = ['dashboard', 'support', 'user_management', 'analytics', 'customer'].includes(p.category || '');
-        const isSpecific = ['respond_tickets', 'escalate_tickets', 'view_reports'].includes(p.name || '');
-        return isAllowed || isSpecific;
-      })
-      .map(p => ({ role_id: roles[4].id, permission_id: p.id }));
+    // SUPPORT_LEAD — leads a support team; can view/assign agents and manage tickets across products
+    const supportLeadPerms = permsFor(roles[4].id, [
+      'manage_users',
+      'view_users',
+      'assign_users',
+      'view_products',
+      'view_all_products',
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'view_reports',
+      'export_data',
+    ]);
 
-    // SUPPORT_AGENT: Support and customer info
-    const supportAgentPerms = permissions
-      .filter(p => {
-        const isAllowed = p.category === 'dashboard' || p.category === 'support' || p.category === 'customer';
-        const isSpecific = ['respond_tickets', 'escalate_tickets'].includes(p.name || '');
-        return isAllowed || isSpecific;
-      })
-      .map(p => ({ role_id: roles[5].id, permission_id: p.id }));
+    // SUPPORT_AGENT — handles tickets and customer queries for assigned product(s)
+    const supportAgentPerms = permsFor(roles[5].id, [
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'view_products',
+    ]);
 
-    // TECHNICAL_AGENT: Support, API keys, settings, customer info
-    const technicalPerms = permissions
-      .filter(p => {
-        const isAllowed = ['dashboard', 'support', 'settings', 'customer'].includes(p.category || '');
-        const isSpecific = ['access_api_keys', 'respond_tickets'].includes(p.name || '');
-        return isAllowed || isSpecific;
-      })
-      .map(p => ({ role_id: roles[6].id, permission_id: p.id }));
+    // TECHNICAL_AGENT — technical escalation; API access, product config read, webhook debugging
+    const technicalPerms = permsFor(roles[6].id, [
+      'view_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'access_api_keys',
+      'configure_product',
+      'view_products',
+      'view_logs',
+    ]);
 
-    // ANALYST: Dashboard, customers, analytics, audit logs
-    const analystPerms = permissions
-      .filter(p => {
-        const isAllowed = ['dashboard', 'analytics', 'customer'].includes(p.category || '');
-        const isSpecific = ['view_reports', 'view_audit', 'export_data'].includes(p.name || '');
-        return isAllowed || isSpecific;
-      })
-      .map(p => ({ role_id: roles[7].id, permission_id: p.id }));
+    // ANALYST — read-only: dashboards, reports, customer data, audit trail
+    const analystPerms = permsFor(roles[7].id, [
+      'view_customers',
+      'view_tickets',
+      'view_reports',
+      'export_data',
+      'view_audit',
+      'view_logs',
+      'view_products',
+    ]);
 
     const allRolePermissions = [
       ...superAdminPerms,
@@ -1016,46 +1159,67 @@ async function main() {
     // 5. ASSIGN SIDEBAR ITEMS TO ROLES
     logger.info('Assigning sidebar items to roles...');
 
-    // SUPER_ADMIN: All items
-    const superAdminSidebar = sidebarItems.map(item => ({
-      role_id: roles[0].id,
-      sidebar_item_id: item.id,
-    }));
+    // Helper: build assignment rows for a role from a list of item IDs
+    const assign = (roleId: string, ids: string[]) =>
+      sidebarItems
+        .filter(item => ids.includes(item.id))
+        .map(item => ({ role_id: roleId, sidebar_item_id: item.id }));
 
-    // OPS_MANAGER: Dashboard, Products, Settings
-    const opsSidebar = sidebarItems
-      .filter(item => ['sidebar-dashboard', 'sidebar-products', 'sidebar-settings'].includes(item.id))
-      .map(item => ({ role_id: roles[1].id, sidebar_item_id: item.id }));
+    // SUPER_ADMIN: all items
+    const superAdminSidebar = sidebarItems.map(item => ({ role_id: roles[0].id, sidebar_item_id: item.id }));
 
-    // FINANCE_ADMIN: Dashboard, Billing
-    const financeSidebar = sidebarItems
-      .filter(item => ['sidebar-dashboard', 'sidebar-billing'].includes(item.id) || item.parentId === 'sidebar-billing')
-      .map(item => ({ role_id: roles[2].id, sidebar_item_id: item.id }));
+    // OPS_MANAGER: dashboard, customers, tickets, reports, user-management
+    const opsSidebar = assign(roles[1].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-reports',
+      'sidebar-user-management',
+    ]);
 
-    // PRODUCT_MANAGER: Dashboard, Products
-    const productSidebar = sidebarItems
-      .filter(item => ['sidebar-dashboard', 'sidebar-products'].includes(item.id))
-      .map(item => ({ role_id: roles[3].id, sidebar_item_id: item.id }));
+    // FINANCE_ADMIN: dashboard, billing
+    const financeSidebar = assign(roles[2].id, ['sidebar-dashboard', 'sidebar-billing']);
 
-    // SUPPORT_LEAD: Dashboard, Support, Users
-    const supportLeadSidebar = sidebarItems
-      .filter(item => ['sidebar-dashboard', 'sidebar-support', 'sidebar-users'].includes(item.id) || item.parentId === 'sidebar-support' || item.parentId === 'sidebar-users')
-      .map(item => ({ role_id: roles[4].id, sidebar_item_id: item.id }));
+    // PRODUCT_MANAGER: dashboard, customers, tickets, reports, settings
+    const productSidebar = assign(roles[3].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-reports',
+      'sidebar-settings',
+    ]);
 
-    // SUPPORT_AGENT: Dashboard, Support (Tickets only)
-    const supportAgentSidebar = sidebarItems
-      .filter(item => item.id === 'sidebar-dashboard' || item.id === 'sidebar-support-tickets')
-      .map(item => ({ role_id: roles[5].id, sidebar_item_id: item.id }));
+    // SUPPORT_LEAD: dashboard, customers, tickets, reports, user-management
+    const supportLeadSidebar = assign(roles[4].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-reports',
+      'sidebar-user-management',
+    ]);
 
-    // TECHNICAL_AGENT: Dashboard, Support, Settings
-    const technicalSidebar = sidebarItems
-      .filter(item => ['sidebar-dashboard', 'sidebar-support', 'sidebar-settings'].includes(item.id) || item.parentId === 'sidebar-support')
-      .map(item => ({ role_id: roles[6].id, sidebar_item_id: item.id }));
+    // SUPPORT_AGENT: dashboard, customers, tickets
+    const supportAgentSidebar = assign(roles[5].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+    ]);
 
-    // ANALYST: Dashboard only
-    const analystSidebar = sidebarItems
-      .filter(item => item.id === 'sidebar-dashboard')
-      .map(item => ({ role_id: roles[7].id, sidebar_item_id: item.id }));
+    // TECHNICAL_AGENT: dashboard, customers, tickets, settings
+    const technicalSidebar = assign(roles[6].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-settings',
+    ]);
+
+    // ANALYST: dashboard, customers, reports, audit-log
+    const analystSidebar = assign(roles[7].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-reports',
+      'sidebar-audit-log',
+    ]);
 
     const allRoleSidebars = [
       ...superAdminSidebar,

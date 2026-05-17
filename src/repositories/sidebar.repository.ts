@@ -33,7 +33,9 @@ export class SidebarRepository {
         },
         orderBy: { order: 'asc' },
       }),
-      prisma.sidebarItem.count(parentId !== undefined ? { where: { parentId } } : { where: { parentId: null } }),
+      prisma.sidebarItem.count(
+        parentId !== undefined ? { where: { parentId } } : { where: { parentId: null } }
+      ),
     ]);
 
     return {
