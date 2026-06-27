@@ -56,7 +56,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/${{ secrets.GHCR_OWNER }}/auth-service:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ secrets.GHCR_OWNER }}/auth-service:buildcache,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref=ghcr.io/{0}/auth-service:buildcache,mode=max', secrets.GHCR_OWNER) || '' }}
 
   deploy:
     needs: build
