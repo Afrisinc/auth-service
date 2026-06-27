@@ -4,6 +4,7 @@ import { ProductRepository } from '../repositories/product.repository';
 import { OrganizationRepository } from '../repositories/organization.repository';
 import { prisma } from '../database/prismaClient';
 import { env } from '@/config/env';
+import { logger } from '@/utils/logger';
 
 const accountRepo = new AccountRepository();
 const accountProductRepo = new AccountProductRepository();
@@ -79,11 +80,11 @@ export class AccountService {
           status: updatedEnrollment.status,
         };
       } catch (error: any) {
-        console.log('Provisioning failed:', error);
+        logger.error({ error }, 'Provisioning failed');
         // Mark enrollment as suspended on provisioning failure
         // Transaction will be rolled back automatically on error
         await accountProductRepo.update(enrollment.id, { status: 'SUSPENDED' }, txn);
-        throw new Error('PROVISIONING_FAILED');
+        throw new Error('PROVISIONING_FAILED', { cause: error });
       }
     });
   }
@@ -95,7 +96,7 @@ export class AccountService {
       media: env.MEDIA_SERVICE_URL,
       billing: env.BILLING_SERVICE_URL,
     };
-    console.log('Provisioning failed:', serviceUrls, productCode);
+    logger.debug({ serviceUrls, productCode }, 'Calling product provisioning');
 
     const baseUrl = serviceUrls[productCode] || `http://${productCode}-service`;
     const endpoint = `${baseUrl}/internal/provision`;

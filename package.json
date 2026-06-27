@@ -33,7 +33,8 @@
     "yarn": ">=1.22.22"
   },
   "prisma": {
-    "schema": "src/database/model"
+    "schema": "src/database/model",
+    "seed": "tsx src/database/seed.ts"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -57,6 +58,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
     "db:seed": "tsx src/database/seed.ts",
+    "db:seed-platform": "tsx src/database/seed-platform.ts",
     "db:setup": "npm run db:migrate:init && npm run db:generate && npm run db:seed",
     "db:reset": "npm run db:migrate:reset && npm run db:seed",
     "db:studio": "prisma studio",

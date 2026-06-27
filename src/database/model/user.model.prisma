@@ -26,11 +26,12 @@ enum ProductPlan {
   ENTERPRISE
 }
 
-enum OrganizationMemberRole {
+enum LegacyOrganizationRole {
   OWNER
   ADMIN
   MEMBER
 }
+
 
 model User {
   id                String    @id @default(uuid())
@@ -56,6 +57,21 @@ model User {
   @@map("users")
 }
 
+model Role {
+  id                String    @id @default(uuid())
+  name              String    @unique // e.g., "SUPER_ADMIN", "OPS_MANAGER"
+  description       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  organizationMembers OrganizationMember[]
+  rolePermissions   RolePermission[]
+  roleSidebarItems  RoleSidebarItem[]
+
+  @@map("roles")
+}
+
 model Organization {
   id                String    @id @default(uuid())
   name              String
@@ -79,15 +95,18 @@ model OrganizationMember {
   id                String    @id @default(uuid())
   organization_id   String
   user_id           String
-  role              OrganizationMemberRole
+  role_id           String?
+  legacy_role       LegacyOrganizationRole? // Temporary: for migration from enum
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   // Relations
   organization      Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
   user              User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role              Role? @relation(fields: [role_id], references: [id], onDelete: Restrict)
 
   @@unique([organization_id, user_id])
+  @@index([role_id])
   @@map("organization_members")
 }
 
@@ -219,4 +238,68 @@ model AuthorizationCode {
   @@index([expires_at])
   @@index([used_at])
   @@map("authorization_codes")
+}
+
+model Permission {
+  id              String    @id @default(uuid())
+  name            String    @unique // e.g., "view_dashboard", "manage_users", "export_reports"
+  description     String?
+  category        String?   // e.g., "user_management", "reporting", "settings"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@index([category])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id              String    @id @default(uuid())
+  role_id         String
+  permission_id   String
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  role            Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission      Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model SidebarItem {
+  id              String    @id @default(uuid())
+  label           String    // e.g., "Dashboard", "Users", "Reports"
+  icon            String?   // Icon name/path
+  path            String?   // Route path
+  order           Int       @default(0) // Display order
+  isActive        Boolean   @default(true)
+  parentId        String?   // For nested menu items
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  parent          SidebarItem? @relation("NestedItems", fields: [parentId], references: [id], onDelete: Cascade)
+  children        SidebarItem[] @relation("NestedItems")
+  roleSidebarItems RoleSidebarItem[]
+
+  @@index([parentId])
+  @@index([order])
+  @@map("sidebar_items")
+}
+
+model RoleSidebarItem {
+  id              String    @id @default(uuid())
+  role_id         String
+  sidebar_item_id String
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  role            Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  sidebarItem     SidebarItem @relation(fields: [sidebar_item_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, sidebar_item_id])
+  @@map("role_sidebar_items")
 }

@@ -121,3 +121,17 @@ export async function updateProduct(req: FastifyRequest, reply: FastifyReply) {
     return ApiResponseHelper.badRequest(reply, message);
   }
 }
+
+export async function getUserProducts(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = req.user?.sub || req.user?.userId;
+    if (!userId) {
+      return ApiResponseHelper.unauthorized(reply, 'User not authenticated');
+    }
+
+    const result = await service.getUserAssignedProducts(userId);
+    return ApiResponseHelper.success(reply, 'User products retrieved successfully', result);
+  } catch (err: unknown) {
+    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+  }
+}

@@ -1,12 +1,13 @@
-name: Deploy Auth Service Develop
+name: Deploy Auth Service Production
 
 on:
   push:
     branches:
-      - develop
+      - main
+
   pull_request:
     branches:
-      - develop
+      - main
 
 env: {}
 
@@ -44,7 +45,7 @@ jobs:
           images: |
             ghcr.io/${{ secrets.GHCR_OWNER }}/auth-service
           tags: |
-            type=raw,value=qa
+            type=raw,value=production
             type=sha
 
       - name: Build and push Docker image
@@ -83,7 +84,7 @@ jobs:
 
           script: |
             set -e
-            APP_PATH="${{ secrets.VPS_APP_PATH }}/auth-service/qa"
+            APP_PATH="${{ secrets.VPS_APP_PATH }}/auth-service/prod"
             cd $APP_PATH
 
             echo "$DEPLOY_GHCR_TOKEN" | docker login ghcr.io -u "$DEPLOY_GHCR_USERNAME" --password-stdin

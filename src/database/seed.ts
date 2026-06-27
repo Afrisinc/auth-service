@@ -302,40 +302,10 @@ async function main() {
 
     logger.info('Created organization account');
 
-    // Add organization members
-    logger.info('Adding organization members...');
-    await Promise.all([
-      prisma.organizationMember.upsert({
-        where: {
-          organization_id_user_id: {
-            organization_id: organization.id,
-            user_id: orgOwner.id,
-          },
-        },
-        update: {},
-        create: {
-          organization_id: organization.id,
-          user_id: orgOwner.id,
-          role: 'OWNER',
-        },
-      }),
-      prisma.organizationMember.upsert({
-        where: {
-          organization_id_user_id: {
-            organization_id: organization.id,
-            user_id: orgAdmin.id,
-          },
-        },
-        update: {},
-        create: {
-          organization_id: organization.id,
-          user_id: orgAdmin.id,
-          role: 'ADMIN',
-        },
-      }),
-    ]);
-
-    logger.info('Added organization members');
+    // Add organization members - will be updated by RBAC seeding to use role_id
+    // logger.info('Adding organization members...');
+    // await Promise.all([...]);
+    // logger.info('Added organization members');
 
     // Enroll organization account in products
     logger.info('Enrolling organization account in products...');
@@ -394,40 +364,10 @@ async function main() {
 
     logger.info('Created AfrisInc organization account');
 
-    // Add AfrisInc organization members
-    logger.info('Adding AfrisInc organization members...');
-    await Promise.all([
-      prisma.organizationMember.upsert({
-        where: {
-          organization_id_user_id: {
-            organization_id: afrisinc.id,
-            user_id: afrisinc_owner.id,
-          },
-        },
-        update: {},
-        create: {
-          organization_id: afrisinc.id,
-          user_id: afrisinc_owner.id,
-          role: 'OWNER',
-        },
-      }),
-      prisma.organizationMember.upsert({
-        where: {
-          organization_id_user_id: {
-            organization_id: afrisinc.id,
-            user_id: afrisinc_admin.id,
-          },
-        },
-        update: {},
-        create: {
-          organization_id: afrisinc.id,
-          user_id: afrisinc_admin.id,
-          role: 'ADMIN',
-        },
-      }),
-    ]);
-
-    logger.info('Added AfrisInc organization members');
+    // Add AfrisInc organization members - will be updated by RBAC seeding to use role_id
+    // logger.info('Adding AfrisInc organization members...');
+    // await Promise.all([...]);
+    // logger.info('Added AfrisInc organization members');
 
     // Enroll AfrisInc account in products
     logger.info('Enrolling AfrisInc account in products...');
@@ -546,6 +486,807 @@ async function main() {
 
     await Promise.all(loginFailures);
     logger.info(`Created ${loginFailures.length} login failures for security testing`);
+
+    // ========== SEED RBAC DATA ==========
+    logger.info('Seeding RBAC system...');
+
+    // 1. CREATE ROLES
+    logger.info('Creating roles...');
+    const roles = await Promise.all([
+      prisma.role.upsert({
+        where: { name: 'SUPER_ADMIN' },
+        update: { description: 'Full system access and control' },
+        create: {
+          name: 'SUPER_ADMIN',
+          description: 'Full system access and control',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'OPS_MANAGER' },
+        update: { description: 'Operations and infrastructure management' },
+        create: {
+          name: 'OPS_MANAGER',
+          description: 'Operations and infrastructure management',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'FINANCE_ADMIN' },
+        update: { description: 'Financial management and billing' },
+        create: {
+          name: 'FINANCE_ADMIN',
+          description: 'Financial management and billing',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'PRODUCT_MANAGER' },
+        update: { description: 'Product planning and feature management' },
+        create: {
+          name: 'PRODUCT_MANAGER',
+          description: 'Product planning and feature management',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'SUPPORT_LEAD' },
+        update: { description: 'Lead support operations and team management' },
+        create: {
+          name: 'SUPPORT_LEAD',
+          description: 'Lead support operations and team management',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'SUPPORT_AGENT' },
+        update: { description: 'Handle customer support tickets' },
+        create: {
+          name: 'SUPPORT_AGENT',
+          description: 'Handle customer support tickets',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'TECHNICAL_AGENT' },
+        update: { description: 'Technical support and troubleshooting' },
+        create: {
+          name: 'TECHNICAL_AGENT',
+          description: 'Technical support and troubleshooting',
+        },
+      }),
+      prisma.role.upsert({
+        where: { name: 'ANALYST' },
+        update: { description: 'Data analysis and reporting' },
+        create: {
+          name: 'ANALYST',
+          description: 'Data analysis and reporting',
+        },
+      }),
+    ]);
+    logger.info(`Created/updated ${roles.length} roles`);
+
+    // 2. CREATE PERMISSIONS
+    logger.info('Creating permissions...');
+    const permissions = await Promise.all([
+      // Dashboard & Analytics
+      prisma.permission.upsert({
+        where: { name: 'view_dashboard' },
+        update: {},
+        create: {
+          name: 'view_dashboard',
+          description: 'View main dashboard',
+          category: 'dashboard',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_analytics' },
+        update: {},
+        create: {
+          name: 'view_analytics',
+          description: 'View analytics and reports',
+          category: 'analytics',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'export_reports' },
+        update: {},
+        create: {
+          name: 'export_reports',
+          description: 'Export analytics reports',
+          category: 'analytics',
+        },
+      }),
+
+      // User Management
+      prisma.permission.upsert({
+        where: { name: 'manage_users' },
+        update: {},
+        create: {
+          name: 'manage_users',
+          description: 'Create, update, delete users',
+          category: 'user_management',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_users' },
+        update: {},
+        create: {
+          name: 'view_users',
+          description: 'View user list and details',
+          category: 'user_management',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_roles' },
+        update: {},
+        create: {
+          name: 'manage_roles',
+          description: 'Create, update, delete roles',
+          category: 'user_management',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_permissions' },
+        update: {},
+        create: {
+          name: 'manage_permissions',
+          description: 'Manage system permissions',
+          category: 'user_management',
+        },
+      }),
+
+      // Organization Management
+      prisma.permission.upsert({
+        where: { name: 'manage_organization' },
+        update: {},
+        create: {
+          name: 'manage_organization',
+          description: 'Manage organization settings',
+          category: 'organization',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_members' },
+        update: {},
+        create: {
+          name: 'manage_members',
+          description: 'Add/remove organization members',
+          category: 'organization',
+        },
+      }),
+
+      // Billing & Finance
+      prisma.permission.upsert({
+        where: { name: 'view_billing' },
+        update: {},
+        create: {
+          name: 'view_billing',
+          description: 'View billing information',
+          category: 'billing',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_billing' },
+        update: {},
+        create: {
+          name: 'manage_billing',
+          description: 'Manage billing and invoices',
+          category: 'billing',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_subscriptions' },
+        update: {},
+        create: {
+          name: 'manage_subscriptions',
+          description: 'Manage product subscriptions',
+          category: 'billing',
+        },
+      }),
+
+      // Support & Tickets
+      prisma.permission.upsert({
+        where: { name: 'view_tickets' },
+        update: {},
+        create: {
+          name: 'view_tickets',
+          description: 'View support tickets',
+          category: 'support',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_tickets' },
+        update: {},
+        create: {
+          name: 'manage_tickets',
+          description: 'Create, update, resolve tickets',
+          category: 'support',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'respond_tickets' },
+        update: {},
+        create: {
+          name: 'respond_tickets',
+          description: 'Respond to support tickets',
+          category: 'support',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'escalate_tickets' },
+        update: {},
+        create: {
+          name: 'escalate_tickets',
+          description: 'Escalate support tickets',
+          category: 'support',
+        },
+      }),
+
+      // Customer Management
+      prisma.permission.upsert({
+        where: { name: 'view_customers' },
+        update: {},
+        create: {
+          name: 'view_customers',
+          description: 'View customer information',
+          category: 'customer',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'edit_customers' },
+        update: {},
+        create: {
+          name: 'edit_customers',
+          description: 'Edit customer information',
+          category: 'customer',
+        },
+      }),
+
+      // User Assignment
+      prisma.permission.upsert({
+        where: { name: 'assign_users' },
+        update: {},
+        create: {
+          name: 'assign_users',
+          description: 'Assign users to products',
+          category: 'user_management',
+        },
+      }),
+
+      // Product Management
+      prisma.permission.upsert({
+        where: { name: 'manage_products' },
+        update: {},
+        create: {
+          name: 'manage_products',
+          description: 'Manage products and features',
+          category: 'product',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_products' },
+        update: {},
+        create: {
+          name: 'view_products',
+          description: 'View product information',
+          category: 'product',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'create_products' },
+        update: {},
+        create: {
+          name: 'create_products',
+          description: 'Create new products',
+          category: 'product',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_all_products' },
+        update: {},
+        create: {
+          name: 'view_all_products',
+          description: 'View all products across organization',
+          category: 'product',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'configure_product' },
+        update: {},
+        create: {
+          name: 'configure_product',
+          description: 'Configure product settings',
+          category: 'product',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'access_api_keys' },
+        update: {},
+        create: {
+          name: 'access_api_keys',
+          description: 'Access and manage API keys',
+          category: 'product',
+        },
+      }),
+
+      // System Settings
+      prisma.permission.upsert({
+        where: { name: 'manage_system_settings' },
+        update: {},
+        create: {
+          name: 'manage_system_settings',
+          description: 'Manage system configuration',
+          category: 'settings',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_logs' },
+        update: {},
+        create: {
+          name: 'view_logs',
+          description: 'View system and audit logs',
+          category: 'settings',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_audit' },
+        update: {},
+        create: {
+          name: 'view_audit',
+          description: 'View audit log',
+          category: 'settings',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'manage_security' },
+        update: {},
+        create: {
+          name: 'manage_security',
+          description: 'Manage security settings',
+          category: 'settings',
+        },
+      }),
+
+      // Analytics & Export
+      prisma.permission.upsert({
+        where: { name: 'export_data' },
+        update: {},
+        create: {
+          name: 'export_data',
+          description: 'Export data in bulk',
+          category: 'analytics',
+        },
+      }),
+      prisma.permission.upsert({
+        where: { name: 'view_reports' },
+        update: {},
+        create: {
+          name: 'view_reports',
+          description: 'View reports and analytics',
+          category: 'analytics',
+        },
+      }),
+    ]);
+    logger.info(`Created/updated ${permissions.length} permissions`);
+
+    // 3. CREATE SIDEBAR ITEMS — mirroring the platform-frontend page IDs exactly
+    logger.info('Creating sidebar items...');
+
+    // Icon names match the Lucide component names used in AppSidebar ICON_REGISTRY.
+    // Paths map 1-to-1 to the platform frontend page IDs via AppSidebar PATH_MAP.
+    const sidebarItems = await Promise.all([
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-dashboard' },
+        update: { label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard', order: 1 },
+        create: {
+          id: 'sidebar-dashboard',
+          label: 'Dashboard',
+          icon: 'LayoutDashboard',
+          path: '/dashboard',
+          order: 1,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-customers' },
+        update: { label: 'Customers', icon: 'Users', path: '/customers', order: 2 },
+        create: {
+          id: 'sidebar-customers',
+          label: 'Customers',
+          icon: 'Users',
+          path: '/customers',
+          order: 2,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-tickets' },
+        update: { label: 'Support Tickets', icon: 'Ticket', path: '/tickets', order: 3 },
+        create: {
+          id: 'sidebar-tickets',
+          label: 'Support Tickets',
+          icon: 'Ticket',
+          path: '/tickets',
+          order: 3,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-reports' },
+        update: { label: 'Reports & Analytics', icon: 'BarChart3', path: '/reports', order: 4 },
+        create: {
+          id: 'sidebar-reports',
+          label: 'Reports & Analytics',
+          icon: 'BarChart3',
+          path: '/reports',
+          order: 4,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-user-management' },
+        update: { label: 'User Management', icon: 'UserCog', path: '/user-management', order: 5 },
+        create: {
+          id: 'sidebar-user-management',
+          label: 'User Management',
+          icon: 'UserCog',
+          path: '/user-management',
+          order: 5,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-billing' },
+        update: { label: 'Billing', icon: 'CreditCard', path: '/billing', order: 6 },
+        create: {
+          id: 'sidebar-billing',
+          label: 'Billing',
+          icon: 'CreditCard',
+          path: '/billing',
+          order: 6,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-audit-log' },
+        update: { label: 'Audit Log', icon: 'ClipboardList', path: '/audit-log', order: 7 },
+        create: {
+          id: 'sidebar-audit-log',
+          label: 'Audit Log',
+          icon: 'ClipboardList',
+          path: '/audit-log',
+          order: 7,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-platform-settings' },
+        update: { label: 'Platform Settings', icon: 'ShieldCheck', path: '/platform-settings', order: 8 },
+        create: {
+          id: 'sidebar-platform-settings',
+          label: 'Platform Settings',
+          icon: 'ShieldCheck',
+          path: '/platform-settings',
+          order: 8,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-settings' },
+        update: { label: 'Settings', icon: 'Settings2', path: '/settings', order: 9 },
+        create: {
+          id: 'sidebar-settings',
+          label: 'Settings',
+          icon: 'Settings2',
+          path: '/settings',
+          order: 9,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-admin-roles' },
+        update: { label: 'Manage Roles', icon: 'ShieldCheck', path: '/admin-roles', order: 10 },
+        create: {
+          id: 'sidebar-admin-roles',
+          label: 'Manage Roles',
+          icon: 'ShieldCheck',
+          path: '/admin-roles',
+          order: 10,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-admin-permissions' },
+        update: { label: 'Manage Permissions', icon: 'ClipboardList', path: '/admin-permissions', order: 11 },
+        create: {
+          id: 'sidebar-admin-permissions',
+          label: 'Manage Permissions',
+          icon: 'ClipboardList',
+          path: '/admin-permissions',
+          order: 11,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+      prisma.sidebarItem.upsert({
+        where: { id: 'sidebar-admin-sidebar' },
+        update: { label: 'Manage Menus', icon: 'Layers', path: '/admin-sidebar', order: 12 },
+        create: {
+          id: 'sidebar-admin-sidebar',
+          label: 'Manage Menus',
+          icon: 'Layers',
+          path: '/admin-sidebar',
+          order: 12,
+          isActive: true,
+          parentId: null,
+        },
+      }),
+    ]);
+    logger.info(`Created/updated ${sidebarItems.length} sidebar items`);
+
+    // 4. ASSIGN PERMISSIONS TO ROLES
+    logger.info('Assigning permissions to roles...');
+
+    // Helper: resolve permission UUIDs by name list
+    const permsFor = (roleId: string, names: string[]) =>
+      permissions.filter(p => names.includes(p.name)).map(p => ({ role_id: roleId, permission_id: p.id }));
+
+    // SUPER_ADMIN — everything: user mgmt, roles, products, billing, support, analytics, settings
+    const superAdminPerms = permissions.map(p => ({ role_id: roles[0].id, permission_id: p.id }));
+
+    // OPS_MANAGER — runs day-to-day operations across all products and teams
+    const opsPerms = permsFor(roles[1].id, [
+      'manage_users',
+      'view_users',
+      'assign_users',
+      'view_all_products',
+      'view_products',
+      'configure_product',
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'view_reports',
+      'view_audit',
+      'export_data',
+    ]);
+
+    // FINANCE_ADMIN — billing, subscriptions, and financial reports only
+    const financePerms = permsFor(roles[2].id, [
+      'view_billing',
+      'manage_billing',
+      'manage_subscriptions',
+      'view_reports',
+      'export_data',
+    ]);
+
+    // PRODUCT_MANAGER — owns one or more products; can configure, assign users, create new products
+    const productPerms = permsFor(roles[3].id, [
+      'create_products',
+      'manage_products',
+      'view_products',
+      'view_all_products',
+      'configure_product',
+      'assign_users',
+      'view_users',
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'access_api_keys',
+      'view_reports',
+      'export_data',
+    ]);
+
+    // SUPPORT_LEAD — leads a support team; can view/assign agents and manage tickets across products
+    const supportLeadPerms = permsFor(roles[4].id, [
+      'manage_users',
+      'view_users',
+      'assign_users',
+      'view_products',
+      'view_all_products',
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'view_reports',
+      'export_data',
+    ]);
+
+    // SUPPORT_AGENT — handles tickets and customer queries for assigned product(s)
+    const supportAgentPerms = permsFor(roles[5].id, [
+      'view_customers',
+      'edit_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'view_products',
+    ]);
+
+    // TECHNICAL_AGENT — technical escalation; API access, product config read, webhook debugging
+    const technicalPerms = permsFor(roles[6].id, [
+      'view_customers',
+      'view_tickets',
+      'manage_tickets',
+      'respond_tickets',
+      'escalate_tickets',
+      'access_api_keys',
+      'configure_product',
+      'view_products',
+      'view_logs',
+    ]);
+
+    // ANALYST — read-only: dashboards, reports, customer data, audit trail
+    const analystPerms = permsFor(roles[7].id, [
+      'view_customers',
+      'view_tickets',
+      'view_reports',
+      'export_data',
+      'view_audit',
+      'view_logs',
+      'view_products',
+    ]);
+
+    const allRolePermissions = [
+      ...superAdminPerms,
+      ...opsPerms,
+      ...financePerms,
+      ...productPerms,
+      ...supportLeadPerms,
+      ...supportAgentPerms,
+      ...technicalPerms,
+      ...analystPerms,
+    ];
+
+    await prisma.rolePermission.deleteMany({});
+    await prisma.rolePermission.createMany({
+      data: allRolePermissions,
+      skipDuplicates: true,
+    });
+    logger.info(`Assigned ${allRolePermissions.length} permission-role mappings`);
+
+    // 5. ASSIGN SIDEBAR ITEMS TO ROLES
+    logger.info('Assigning sidebar items to roles...');
+
+    // Helper: build assignment rows for a role from a list of item IDs
+    const assign = (roleId: string, ids: string[]) =>
+      sidebarItems
+        .filter(item => ids.includes(item.id))
+        .map(item => ({ role_id: roleId, sidebar_item_id: item.id }));
+
+    // SUPER_ADMIN: all items
+    const superAdminSidebar = sidebarItems.map(item => ({ role_id: roles[0].id, sidebar_item_id: item.id }));
+
+    // OPS_MANAGER: dashboard, customers, tickets, reports, user-management
+    const opsSidebar = assign(roles[1].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-reports',
+      'sidebar-user-management',
+    ]);
+
+    // FINANCE_ADMIN: dashboard, billing
+    const financeSidebar = assign(roles[2].id, ['sidebar-dashboard', 'sidebar-billing']);
+
+    // PRODUCT_MANAGER: dashboard, customers, tickets, reports, settings
+    const productSidebar = assign(roles[3].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-reports',
+      'sidebar-settings',
+    ]);
+
+    // SUPPORT_LEAD: dashboard, customers, tickets, reports, user-management
+    const supportLeadSidebar = assign(roles[4].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-reports',
+      'sidebar-user-management',
+    ]);
+
+    // SUPPORT_AGENT: dashboard, customers, tickets
+    const supportAgentSidebar = assign(roles[5].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+    ]);
+
+    // TECHNICAL_AGENT: dashboard, customers, tickets, settings
+    const technicalSidebar = assign(roles[6].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-tickets',
+      'sidebar-settings',
+    ]);
+
+    // ANALYST: dashboard, customers, reports, audit-log
+    const analystSidebar = assign(roles[7].id, [
+      'sidebar-dashboard',
+      'sidebar-customers',
+      'sidebar-reports',
+      'sidebar-audit-log',
+    ]);
+
+    const allRoleSidebars = [
+      ...superAdminSidebar,
+      ...opsSidebar,
+      ...financeSidebar,
+      ...productSidebar,
+      ...supportLeadSidebar,
+      ...supportAgentSidebar,
+      ...technicalSidebar,
+      ...analystSidebar,
+    ];
+
+    await prisma.roleSidebarItem.deleteMany({});
+    await prisma.roleSidebarItem.createMany({
+      data: allRoleSidebars,
+      skipDuplicates: true,
+    });
+    logger.info(`Assigned ${allRoleSidebars.length} sidebar-role mappings`);
+
+    // 6. UPDATE EXISTING ORGANIZATION MEMBERS TO USE role_id
+    logger.info('Updating organization members with new role_id...');
+
+    // Delete old organization members and recreate with role_id
+    const acmeOrg = organization;
+    const afrisincOrg = afrisinc;
+
+    await prisma.organizationMember.deleteMany({
+      where: {
+        organization_id: { in: [acmeOrg.id, afrisincOrg.id] },
+      },
+    });
+
+    // Acme members
+    await prisma.organizationMember.createMany({
+      data: [
+        {
+          organization_id: acmeOrg.id,
+          user_id: orgOwner.id,
+          role_id: roles[0].id, // SUPER_ADMIN
+        },
+        {
+          organization_id: acmeOrg.id,
+          user_id: orgAdmin.id,
+          role_id: roles[1].id, // OPS_MANAGER
+        },
+      ],
+    });
+
+    // AfrisInc members
+    await prisma.organizationMember.createMany({
+      data: [
+        {
+          organization_id: afrisincOrg.id,
+          user_id: afrisinc_owner.id,
+          role_id: roles[0].id, // SUPER_ADMIN
+        },
+        {
+          organization_id: afrisincOrg.id,
+          user_id: afrisinc_admin.id,
+          role_id: roles[4].id, // SUPPORT_LEAD
+        },
+      ],
+    });
+
+    logger.info('Updated organization members with role_id');
+
+    logger.info('✅ RBAC system seeding completed!');
 
     // Seed tokens for security testing
     logger.info('Creating sample tokens...');

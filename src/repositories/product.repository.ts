@@ -93,7 +93,9 @@ export class ProductRepository {
 
   async getProductAccountsEnrolled(productId: string, skip: number, take: number, status?: string) {
     const product = await prisma.product.findUnique({ where: { id: productId } });
-    if (!product) return null;
+    if (!product) {
+      return null;
+    }
 
     const where: any = { product_id: productId };
     if (status) {
@@ -147,5 +149,68 @@ export class ProductRepository {
         total,
       },
     };
+  }
+
+  async getUserAssignedProducts(userId: string) {
+    // Get all accounts owned by the user
+    const ownedAccounts = await prisma.account.findMany({
+      where: { owner_user_id: userId },
+      select: { id: true },
+    });
+
+    // Get organizations the user is a member of
+    const memberships = await prisma.organizationMember.findMany({
+      where: { user_id: userId },
+      select: { organization_id: true },
+    });
+
+    const organizationIds = memberships.map(m => m.organization_id);
+
+    // Get accounts belonging to those organizations
+    const orgAccounts = await prisma.account.findMany({
+      where: { organization_id: { in: organizationIds } },
+      select: { id: true },
+    });
+
+    // Combine all account IDs (owned + organization membership)
+    const accountIds = [...ownedAccounts.map(a => a.id), ...orgAccounts.map(a => a.id)].filter(
+      (id, index, arr) => arr.indexOf(id) === index
+    ); // Remove duplicates
+
+    if (accountIds.length === 0) {
+      return [];
+    }
+
+    // Get all product enrollments for these accounts
+    const enrollments = await prisma.accountProduct.findMany({
+      where: { account_id: { in: accountIds } },
+      include: {
+        product: true,
+        account: {
+          select: {
+            id: true,
+            type: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return enrollments.map(enrollment => ({
+      id: enrollment.product.id,
+      name: enrollment.product.name,
+      code: enrollment.product.code,
+      description: enrollment.product.description,
+      status: enrollment.product.status,
+      baseUrl: enrollment.product.baseUrl,
+      enrollment: {
+        enrollmentId: enrollment.id,
+        accountId: enrollment.account.id,
+        accountType: enrollment.account.type,
+        status: enrollment.status,
+        plan: enrollment.plan,
+        enrolledAt: enrollment.createdAt,
+      },
+    }));
   }
 }

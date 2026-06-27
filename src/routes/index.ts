@@ -7,6 +7,7 @@ import { accountRoutes } from './account.routes';
 import { platformRoutes } from './platform.routes';
 import { productRoutes } from './product.routes';
 import { securityRoutes } from './security.routes';
+import { adminRoutes } from './admin.routes';
 
 export async function registerRoutes(app: FastifyInstance) {
   app.get(
@@ -26,4 +27,5 @@ export async function registerRoutes(app: FastifyInstance) {
   app.register(platformRoutes);
   app.register(productRoutes);
   app.register(securityRoutes);
+  app.register(adminRoutes);
 }

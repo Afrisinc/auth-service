@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y libssl1.1 bash
 
 # Enable Corepack for runtime commands (docker exec yarn …)
 RUN corepack enable \
- && corepack prepare pnpm@latest --activate
+ && corepack prepare pnpm@9 --activate
 
 # Copy dependencies
 COPY package.json pnpm-lock.* ./
