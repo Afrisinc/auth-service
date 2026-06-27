@@ -77,7 +77,7 @@ export class RedirectValidator {
         pathname: url.pathname,
         href: url.href,
       };
-    } catch (error) {
+    } catch {
       return {
         valid: false,
         error: 'Invalid URL format',

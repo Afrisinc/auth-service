@@ -6,8 +6,14 @@ import {
   getProductById,
   updateProduct,
   getPublicProducts,
+  getUserProducts,
 } from '../controllers/product.controller';
-import { GetProductEnrollmentsSchema, GetProductAccountsSchema, CreateProductSchema } from '../schemas';
+import {
+  GetProductEnrollmentsSchema,
+  GetProductAccountsSchema,
+  CreateProductSchema,
+  GetUserProductsSchema,
+} from '../schemas';
 import { authGuard } from '../middlewares/authGuard';
 
 export async function productRoutes(app: FastifyInstance) {
@@ -23,6 +29,9 @@ export async function productRoutes(app: FastifyInstance) {
 
   // Get public products (LIVE, COMING_SOON, BETA) - No authentication required
   app.get('/products/public', {}, getPublicProducts);
+
+  // Get logged in user's assigned products
+  app.get('/products/me', { schema: GetUserProductsSchema, onRequest: [authGuard] }, getUserProducts);
 
   // Get product by ID
   app.get('/products/:productId', { onRequest: [authGuard] }, getProductById);

@@ -113,7 +113,7 @@ export async function connectToDatabase(): Promise<void> {
       },
       'Failed to connect to database'
     );
-    throw new Error('Database connection failed');
+    throw new Error('Database connection failed', { cause: error });
   }
 }
 

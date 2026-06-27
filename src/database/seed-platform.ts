@@ -1,13 +1,14 @@
 /**
  * seed-platform.ts
  *
- * Seeds everything needed to test the full Afrisinc Control login flow:
+ * Seeds everything needed to test the full Afrisinc Control + Notify login flow:
  *
  *  1. CONTROL product  — with baseUrl + allowedCallbacks pointing at the platform frontend
- *  2. admin@afrisinc.com — the ADMIN_EMAIL user (bypasses product lookup entirely)
- *  3. Platform team users — one per role, matching the TEAM_MEMBERS seed in platform-frontend
- *  4. Accounts + org membership — so the auth-service can resolve role_id on /oauth/exchange
- *  5. Account → CONTROL product enrollment — so login redirects to /auth/callback
+ *  2. NOTIFY product   — with baseUrl + allowedCallbacks pointing at the notify dashboard
+ *  3. admin@afrisinc.com — the ADMIN_EMAIL user (bypasses product lookup entirely)
+ *  4. Platform team users — one per role, matching the TEAM_MEMBERS seed in platform-frontend
+ *  5. Accounts + org membership — so the auth-service can resolve role_id on /oauth/exchange
+ *  6. Account → CONTROL product enrollment — so login redirects to /auth/callback
  *
  * Run:
  *   npm run db:seed-platform
@@ -16,6 +17,11 @@
  *   All users: Password123!
  *
  * Must be run AFTER the base seed (npm run db:seed) so roles already exist.
+ *
+ * SSO Flow:
+ *   auth-ui → auth-service issues code → platform /auth/callback
+ *   → /select-product → user clicks Notify
+ *   → notify-dashboard /sso/callback?token=JWT → /dashboard
  */
 
 import { logger } from '@/utils/logger.js';
@@ -33,6 +39,10 @@ const PASSWORD = 'Password123!';
  */
 const PLATFORM_BASE_URL = 'http://localhost:8080';
 const PLATFORM_CALLBACK = 'http://localhost:8080/auth/callback';
+
+/** Notify dashboard local dev URL */
+const NOTIFY_BASE_URL = 'http://localhost:5173';
+const NOTIFY_CALLBACK = 'http://localhost:5173/sso/callback';
 
 // ── Team users (mirrors platform-frontend TEAM_MEMBERS) ───────────────────────
 
@@ -78,7 +88,29 @@ async function main() {
     });
     logger.info(`CONTROL product ready — callback: ${PLATFORM_CALLBACK}`);
 
-    // ── 2. Roles lookup (must already exist from base seed) ──────────────────
+    // ── 2. NOTIFY product ────────────────────────────────────────────────────
+    logger.info('Upserting NOTIFY product...');
+    const notifyProduct = await prisma.product.upsert({
+      where: { code: 'NOTIFY' },
+      update: {
+        name: 'Notify',
+        description: 'Send and manage notifications across email, SMS, push, and in-app channels.',
+        baseUrl: NOTIFY_BASE_URL,
+        allowedCallbacks: [NOTIFY_CALLBACK],
+        status: 'LIVE',
+      },
+      create: {
+        name: 'Notify',
+        code: 'NOTIFY',
+        description: 'Send and manage notifications across email, SMS, push, and in-app channels.',
+        baseUrl: NOTIFY_BASE_URL,
+        allowedCallbacks: [NOTIFY_CALLBACK],
+        status: 'LIVE',
+      },
+    });
+    logger.info(`NOTIFY product ready — callback: ${NOTIFY_CALLBACK}`);
+
+    // ── 3. Roles lookup (must already exist from base seed) ──────────────────
     const roles = await prisma.role.findMany();
     const roleMap = Object.fromEntries(roles.map(r => [r.name, r]));
 
@@ -109,7 +141,8 @@ async function main() {
       });
     }
 
-    logger.info(`Using org: ${afrisincOrg.name} (${afrisincOrg.id})`);
+    const orgId = afrisincOrg.id;
+    logger.info(`Using org: ${afrisincOrg.name} (${orgId})`);
 
     // ── 4. Upsert each team user, account, org membership, and enrollment ────
     logger.info(`Seeding ${TEAM_USERS.length} platform team users...`);
@@ -148,13 +181,13 @@ async function main() {
       await prisma.organizationMember.upsert({
         where: {
           organization_id_user_id: {
-            organization_id: afrisincOrg!.id,
+            organization_id: orgId,
             user_id: user.id,
           },
         },
         update: { role_id: role.id },
         create: {
-          organization_id: afrisincOrg!.id,
+          organization_id: orgId,
           user_id: user.id,
           role_id: role.id,
         },
@@ -177,6 +210,23 @@ async function main() {
         },
       });
 
+      // 4e. Enroll in NOTIFY product (so the platform shows Notify as a selectable product)
+      await prisma.accountProduct.upsert({
+        where: {
+          account_id_product_id: {
+            account_id: account.id,
+            product_id: notifyProduct.id,
+          },
+        },
+        update: { status: 'ACTIVE' },
+        create: {
+          account_id: account.id,
+          product_id: notifyProduct.id,
+          status: 'ACTIVE',
+          plan: 'FREE',
+        },
+      });
+
       logger.info(`  ✓ ${member.firstName} ${member.lastName} <${member.email}> → ${member.roleName}`);
     }
 
@@ -185,8 +235,9 @@ async function main() {
     logger.info('Platform seed complete!');
     logger.info('');
     logger.info('════════════════════════════════════════════════');
-    logger.info('  CONTROL PRODUCT');
-    logger.info(`  Callback URL : ${PLATFORM_CALLBACK}`);
+    logger.info('  PRODUCTS SEEDED');
+    logger.info(`  CONTROL  →  ${PLATFORM_CALLBACK}`);
+    logger.info(`  NOTIFY   →  ${NOTIFY_CALLBACK}`);
     logger.info('════════════════════════════════════════════════');
     logger.info('  LOGIN CREDENTIALS  (all use: Password123!)');
     logger.info('────────────────────────────────────────────────');
@@ -195,12 +246,14 @@ async function main() {
     }
     logger.info('════════════════════════════════════════════════');
     logger.info('');
-    logger.info('Login flow:');
+    logger.info('Full SSO flow:');
     logger.info(`  1. Open auth-ui       →  http://localhost:8098/login`);
     logger.info(`  2. Sign in with any email above`);
     logger.info(`  3. Redirected to      →  ${PLATFORM_CALLBACK}?code=<code>`);
     logger.info(`  4. Platform (8080) exchanges code via gateway (8091)`);
-    logger.info(`  5. Dashboard loads with role-specific sidebar menu`);
+    logger.info(`  5. /select-product shows CONTROL + NOTIFY tiles`);
+    logger.info(`  6. Click Notify       →  ${NOTIFY_CALLBACK}?token=<jwt>`);
+    logger.info(`  7. Notify dashboard (/dashboard) loads with live session`);
   } catch (err: any) {
     logger.error('Platform seed failed: ' + (err?.message ?? err));
     process.exit(1);

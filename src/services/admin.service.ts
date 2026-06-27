@@ -82,7 +82,7 @@ export class AdminService {
       return await roleRepo.addPermission(roleId, permissionId);
     } catch (error: any) {
       if (error.code === 'P2002') {
-        throw new Error('PERMISSION_ALREADY_ASSIGNED');
+        throw new Error('PERMISSION_ALREADY_ASSIGNED', { cause: error });
       }
       throw error;
     }
@@ -281,7 +281,7 @@ export class AdminService {
       return await roleRepo.addSidebarItem(roleId, sidebarItemId);
     } catch (error: any) {
       if (error.code === 'P2002') {
-        throw new Error('SIDEBAR_ITEM_ALREADY_ASSIGNED');
+        throw new Error('SIDEBAR_ITEM_ALREADY_ASSIGNED', { cause: error });
       }
       throw error;
     }

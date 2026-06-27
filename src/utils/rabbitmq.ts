@@ -86,11 +86,13 @@ export class RabbitMQExchange {
 
     const wrappedHandler = async (msg: ConsumeMessage | null) => {
       try {
-        if (!msg) return;
+        if (!msg) {
+          return;
+        }
         const { content } = msg;
         const parsedMsg = JSON.parse(content.toString());
         const message = parsedMsg.msg;
-        console.log(`Received message: ${JSON.stringify(message)}`);
+        logger.debug({ message }, 'Received message');
 
         const processedMsg = {
           ...msg,
@@ -107,7 +109,7 @@ export class RabbitMQExchange {
 
         await handler(processedMsg, channel);
       } catch (error: any) {
-        console.log(`Error processing message: ${error}\n`);
+        logger.error({ error }, 'Error processing message');
       }
     };
 
@@ -184,13 +186,17 @@ export class RabbitMQExchange {
   }
 
   static async recoverBindings() {
-    if (!this.activeBindings.length) return;
+    if (!this.activeBindings.length) {
+      return;
+    }
     logger.info('Recreating RabbitMQ exchanges, queues, and bindings...');
     await this.setupQueueBinding(this.activeBindings);
   }
 
   static async recoverConsumers() {
-    if (!this.activeConsumers.length) return;
+    if (!this.activeConsumers.length) {
+      return;
+    }
     logger.info('Re-subscribing all RabbitMQ consumers...');
     const consumers = [...this.activeConsumers];
     this.activeConsumers = [];
@@ -207,9 +213,15 @@ export class RabbitMQExchange {
   // --- SHUTDOWN ---
   static async shutdown() {
     try {
-      if (this.consumerChannel) await this.consumerChannel.close();
-      if (this.publisherChannel) await this.publisherChannel.close();
-      if (this.connection) await this.connection.close();
+      if (this.consumerChannel) {
+        await this.consumerChannel.close();
+      }
+      if (this.publisherChannel) {
+        await this.publisherChannel.close();
+      }
+      if (this.connection) {
+        await this.connection.close();
+      }
       logger.info('RabbitMQ connection and channels closed cleanly.');
     } catch (err: any) {
       logger.error('Error during RabbitMQ shutdown:', err.message);

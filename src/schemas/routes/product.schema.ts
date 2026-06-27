@@ -171,6 +171,50 @@ export const GetProductAccountsSchema = {
   },
 } as const;
 
+export const GetUserProductsSchema = {
+  tags: ['products'],
+  summary: 'Get logged in user assigned products',
+  description: 'Retrieve all products assigned to the authenticated user through their accounts',
+  security: [{ bearerAuth: [] }],
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'User products retrieved successfully' },
+        resp_code: { type: 'integer', example: 1000 },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              code: { type: 'string' },
+              description: { type: 'string', nullable: true },
+              status: { type: 'string' },
+              baseUrl: { type: 'string', nullable: true },
+              enrollment: {
+                type: 'object',
+                properties: {
+                  enrollmentId: { type: 'string' },
+                  accountId: { type: 'string' },
+                  accountType: { type: 'string', enum: ['INDIVIDUAL', 'ORGANIZATION'] },
+                  status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED', 'PENDING'] },
+                  plan: { type: 'string', enum: ['FREE', 'PRO', 'ENTERPRISE'] },
+                  enrolledAt: { type: 'string', format: 'date-time' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
+    401: ErrorResponseSchema,
+  },
+} as const;
+
 export const CreateProductSchema = {
   tags: ['products'],
   summary: 'Create a new product',

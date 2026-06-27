@@ -106,7 +106,9 @@ export class OrganizationService {
 
   async validateUserIsOrgOwner(organizationId: string, userId: string) {
     const member = await orgRepo.getMember(organizationId, userId);
-    if (!member) return false;
+    if (!member) {
+      return false;
+    }
     const memberData = member as any;
     return memberData.legacy_role === 'OWNER';
   }

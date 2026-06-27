@@ -27,7 +27,9 @@ export class AnalyticsService {
 
   private parseRangeInDays(range: string): number {
     const match = range.match(/(\d+)(d|w|m)/);
-    if (!match) return 30;
+    if (!match) {
+      return 30;
+    }
 
     const value = parseInt(match[1], 10);
     const unit = match[2];

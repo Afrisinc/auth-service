@@ -77,4 +77,8 @@ export class ProductService {
 
     return productRepo.update(productId, updateData);
   }
+
+  async getUserAssignedProducts(userId: string) {
+    return productRepo.getUserAssignedProducts(userId);
+  }
 }

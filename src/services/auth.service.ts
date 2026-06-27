@@ -232,7 +232,7 @@ export class AuthService {
         redirectUrl = env.APP_URL + '/get-started';
       }
     }
-
+    redirectUrl = env.ADMIN_CALLBACK_URL || redirectUrl; // Use admin callback if configured
     // Generate authorization code instead of returning token directly (OAuth Secure Redirect Pattern)
     const authCode = generateAuthorizationCode();
     const expiresAt = getAuthCodeExpiresAt();

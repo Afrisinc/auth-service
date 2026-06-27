@@ -133,9 +133,9 @@ export const errorHandler = (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
-  let statusCode = 500;
+  let statusCode: number;
   let errorCode: string | undefined;
-  let message = 'Internal Server Error';
+  let message: string;
   let details: any;
 
   // Handle different error types
@@ -155,9 +155,6 @@ export const errorHandler = (
     }));
   } else if (error instanceof PrismaClientKnownRequestError) {
     // Prisma database errors
-    statusCode = 400;
-    errorCode = 'DATABASE_ERROR';
-
     switch (error.code) {
       case 'P2002':
         statusCode = 409;
@@ -177,6 +174,7 @@ export const errorHandler = (
       default:
         statusCode = 500;
         message = 'Database operation failed';
+        errorCode = 'DATABASE_ERROR';
     }
   } else if (error instanceof PrismaClientInitializationError) {
     statusCode = 500;
