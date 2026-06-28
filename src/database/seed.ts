@@ -7,6 +7,7 @@ async function main() {
     logger.info('Starting database seeding...');
 
     const hashedPassword = await bcrypt.hash('Password123!', 10);
+    const simpleAdminPassword = await bcrypt.hash('Admin123', 10);
 
     // Create sample users
     logger.info('Creating sample users...');
@@ -117,6 +118,25 @@ async function main() {
           lastName: 'Mensah',
           phone: '+233-207-1234567',
           location: 'Accra, Ghana',
+          status: 'ACTIVE',
+        },
+      }),
+      // Simple AfrisInc Admin for easy login
+      prisma.user.upsert({
+        where: { email: 'admin@afrisinc.com' },
+        update: {
+          firstName: 'Admin',
+          lastName: 'AfrisInc',
+          phone: '+234-800-0000000',
+          location: 'Lagos, Nigeria',
+        },
+        create: {
+          email: 'admin@afrisinc.com',
+          password_hash: simpleAdminPassword,
+          firstName: 'Admin',
+          lastName: 'AfrisInc',
+          phone: '+234-800-0000000',
+          location: 'Lagos, Nigeria',
           status: 'ACTIVE',
         },
       }),
@@ -350,6 +370,7 @@ async function main() {
     logger.info('Creating AfrisInc organization account...');
     const afrisinc_owner = users[4]; // Amara Okonkwo
     const afrisinc_admin = users[5]; // Kwame Mensah
+    const afrisinc_simple_admin = users[6]; // Admin AfrisInc (simple login)
 
     const afrisincAccount = await prisma.account.upsert({
       where: { id: afrisinc.id + '-account' },
@@ -1280,6 +1301,11 @@ async function main() {
           organization_id: afrisincOrg.id,
           user_id: afrisinc_admin.id,
           role_id: roles[4].id, // SUPPORT_LEAD
+        },
+        {
+          organization_id: afrisincOrg.id,
+          user_id: afrisinc_simple_admin.id,
+          role_id: roles[0].id, // SUPER_ADMIN - Easy login admin
         },
       ],
     });
