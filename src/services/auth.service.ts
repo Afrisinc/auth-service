@@ -393,6 +393,9 @@ export class AuthService {
       user_id: user.id,
       email: user.email,
       token_type: userData.type,
+      role: userData.role,
+      account_id: userData.account_id,
+      product: userData.product,
     };
   }
 

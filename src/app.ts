@@ -6,13 +6,14 @@ import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
-import path from 'path';
+import path from 'node:path';
 import { getCorsConfig } from './config/cors';
 import { swaggerConfig, swaggerCspDirectives, swaggerUiConfig } from './config/swagger';
 import { errorHandler } from './middlewares/errorHandler';
 import { registerRoutes } from './routes/index';
 import { logger } from './utils/logger';
 import rabbitPlugin from './plugins/rabbitPlugin';
+import verifyAppsSignature from './plugins/verifyGatewaySignature';
 
 /**
  * Creates and configures the Fastify application instance
@@ -59,6 +60,12 @@ const createApp = async (): Promise<FastifyInstance> => {
 
     // Register message queue plugin
     await app.register(rabbitPlugin);
+
+    // Register gateway signature verification plugin
+    await app.register(verifyAppsSignature, {
+      enabled: true,
+      ignorePaths: ['/health', '/docs'],
+    });
 
     // Set global error handler
     app.setErrorHandler(errorHandler);

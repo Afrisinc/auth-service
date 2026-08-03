@@ -102,10 +102,12 @@ export const LoginRequestSchema = {
       type: 'string',
       format: 'email',
       description: 'User email address for login',
+      default: 'admin@afrisinc.com',
     },
     password: {
       type: 'string',
       description: 'User password',
+      default: 'Admin123',
     },
     product_code: {
       type: 'string',

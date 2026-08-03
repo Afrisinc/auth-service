@@ -14,4 +14,5 @@ export const env = {
   SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || 'support@afrisinc.com',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   ADMIN_CALLBACK_URL: process.env.ADMIN_CALLBACK_URL,
+  SERVICE_SECRET: process.env.SERVICE_SECRET,
 } as const;
