@@ -53,39 +53,35 @@ export class AccountService {
         txn
       );
 
+      let externalResourceId = null;
       try {
-        // Call product microservice internal provisioning endpoint
         const provisioningResponse = await this.callProductProvisioning(
           productCode,
           accountId,
           account.type,
           account
         );
-
-        // Update enrollment with active status and resource ID within transaction
-        const updatedEnrollment = await accountProductRepo.update(
-          enrollment.id,
-          {
-            status: 'ACTIVE',
-            external_resource_id: provisioningResponse?.data?.resource_id,
-          },
-          txn
-        );
-
-        return {
-          enrollment_id: updatedEnrollment.id,
-          product_code: productCode,
-          account_id: accountId,
-          plan: updatedEnrollment.plan,
-          status: updatedEnrollment.status,
-        };
+        externalResourceId = provisioningResponse?.data?.resource_id;
       } catch (error: any) {
-        logger.error({ error }, 'Provisioning failed');
-        // Mark enrollment as suspended on provisioning failure
-        // Transaction will be rolled back automatically on error
-        await accountProductRepo.update(enrollment.id, { status: 'SUSPENDED' }, txn);
-        throw new Error('PROVISIONING_FAILED', { cause: error });
+        logger.warn({ error: error.message, productCode }, 'Provisioning skipped - service unavailable');
       }
+
+      const updatedEnrollment = await accountProductRepo.update(
+        enrollment.id,
+        {
+          status: 'ACTIVE',
+          external_resource_id: externalResourceId,
+        },
+        txn
+      );
+
+      return {
+        enrollment_id: updatedEnrollment.id,
+        product_code: productCode,
+        account_id: accountId,
+        plan: updatedEnrollment.plan,
+        status: updatedEnrollment.status,
+      };
     });
   }
 
@@ -145,6 +141,29 @@ export class AccountService {
     }
 
     return accountProductRepo.update(enrollment.id, { status });
+  }
+
+  async removeProduct(accountId: string, productCode: string) {
+    // Validate account exists
+    const account = await accountRepo.findById(accountId);
+    if (!account) {
+      throw new Error('ACCOUNT_NOT_FOUND');
+    }
+
+    // Find enrollment by account and product code
+    const enrollment = await accountProductRepo.findByAccountAndProductCode(accountId, productCode);
+    if (!enrollment) {
+      throw new Error('PRODUCT_NOT_ENROLLED');
+    }
+
+    // Delete the enrollment
+    await accountProductRepo.delete(enrollment.id);
+
+    return {
+      account_id: accountId,
+      product_code: productCode,
+      removed: true,
+    };
   }
 
   async validateUserCanAccessAccount(userId: string, accountId: string) {

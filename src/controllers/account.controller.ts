@@ -184,3 +184,32 @@ export async function getAllAccounts(req: FastifyRequest, reply: FastifyReply) {
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }
 }
+
+export async function removeProduct(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { accountId, productCode } = req.params as { accountId: string; productCode: string };
+    const userId = (req as any).user?.sub || (req as any).user?.userId;
+
+    if (!userId) {
+      return ApiResponseHelper.unauthorized(reply, 'User not authenticated');
+    }
+
+    // Validate user can access account
+    const canAccess = await service.validateUserCanAccessAccount(userId, accountId);
+    if (!canAccess) {
+      return ApiResponseHelper.unauthorized(reply, 'You do not have access to this account');
+    }
+
+    const result = await service.removeProduct(accountId, productCode);
+    return ApiResponseHelper.success(reply, 'Product removed from account successfully', result);
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    if (message === 'PRODUCT_NOT_ENROLLED') {
+      return ApiResponseHelper.notFound(reply, 'Product is not enrolled in this account');
+    }
+    if (message === 'ACCOUNT_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Account not found');
+    }
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}

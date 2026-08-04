@@ -53,6 +53,8 @@ model User {
   loginFailures     LoginFailure[]    @relation("LoginFailures")
   tokens            Token[]           @relation("Tokens")
   authorizationCodes AuthorizationCode[]
+  productAccess     MemberProductAccess[]
+  grantedAccess     MemberProductAccess[] @relation("GrantedByUser")
 
   @@map("users")
 }
@@ -68,6 +70,7 @@ model Role {
   organizationMembers OrganizationMember[]
   rolePermissions   RolePermission[]
   roleSidebarItems  RoleSidebarItem[]
+  memberProductAccess MemberProductAccess[]
 
   @@map("roles")
 }
@@ -87,6 +90,7 @@ model Organization {
   // Relations
   members           OrganizationMember[]
   accounts          Account[]
+  memberProductAccess MemberProductAccess[]
 
   @@map("organizations")
 }
@@ -141,6 +145,7 @@ model Product {
 
   // Relations
   accounts          AccountProduct[]
+  memberAccess      MemberProductAccess[]
 
   @@map("products")
 }
@@ -296,10 +301,33 @@ model RoleSidebarItem {
   sidebar_item_id String
   createdAt       DateTime  @default(now())
 
-  // Relations
   role            Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
   sidebarItem     SidebarItem @relation(fields: [sidebar_item_id], references: [id], onDelete: Cascade)
 
   @@unique([role_id, sidebar_item_id])
   @@map("role_sidebar_items")
+}
+
+model MemberProductAccess {
+  id              String    @id @default(uuid())
+  organization_id String
+  user_id         String
+  product_id      String
+  role_id         String?
+  granted_by      String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  user            User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product         Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  role            Role? @relation(fields: [role_id], references: [id], onDelete: SetNull)
+  grantedByUser   User @relation("GrantedByUser", fields: [granted_by], references: [id], onDelete: Restrict)
+
+  @@unique([organization_id, user_id, product_id])
+  @@index([organization_id])
+  @@index([user_id])
+  @@index([product_id])
+  @@index([role_id])
+  @@map("member_product_access")
 }

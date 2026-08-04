@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import {
   createOrganization,
   getOrganization,
+  getOrganizationProducts,
   addMember,
   removeMember,
   listMembers,
@@ -11,6 +12,7 @@ import {
 import {
   CreateOrganizationRouteSchema,
   GetOrganizationRouteSchema,
+  GetOrganizationProductsSchema,
   AddMemberRouteSchema,
   RemoveMemberRouteSchema,
   ListMembersRouteSchema,
@@ -38,6 +40,13 @@ export async function organizationRoutes(app: FastifyInstance) {
     '/organizations/:organizationId',
     { schema: GetOrganizationRouteSchema, onRequest: [authGuard] },
     getOrganization
+  );
+
+  // Get organization products
+  app.get(
+    '/organizations/:organizationId/products',
+    { schema: GetOrganizationProductsSchema, onRequest: [authGuard] },
+    getOrganizationProducts
   );
 
   // Update organization

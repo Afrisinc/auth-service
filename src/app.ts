@@ -64,7 +64,17 @@ const createApp = async (): Promise<FastifyInstance> => {
     // Register gateway signature verification plugin
     await app.register(verifyAppsSignature, {
       enabled: true,
-      ignorePaths: ['/health', '/docs'],
+      ignorePaths: [
+        '/health',
+        '/docs',
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/verify-email',
+        '/reset-password',
+        '/oauth/exchange',
+        '/verify',
+      ],
     });
 
     // Set global error handler

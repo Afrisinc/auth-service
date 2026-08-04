@@ -17,3 +17,4 @@ export * from './routes/organization.schema';
 export * from './routes/account.schema';
 export * from './routes/product.schema';
 export * from './routes/security.schema';
+export * from './routes/member-product-access.schema';

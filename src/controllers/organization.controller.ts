@@ -79,6 +79,21 @@ export async function updateOrganization(req: FastifyRequest, reply: FastifyRepl
   }
 }
 
+export async function getOrganizationProducts(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { organizationId } = req.params as { organizationId: string };
+
+    const products = await service.getOrganizationProducts(organizationId);
+    return ApiResponseHelper.success(reply, 'Organization products retrieved successfully', { products });
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    if (message === 'ORGANIZATION_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Organization not found');
+    }
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}
+
 export async function getAllOrganizations(req: FastifyRequest, reply: FastifyReply) {
   try {
     const {

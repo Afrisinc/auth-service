@@ -77,7 +77,7 @@ export async function getProductById(req: FastifyRequest, reply: FastifyReply) {
 
 export async function getPublicProducts(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const statuses = ['LIVE', 'COMING_SOON', 'BETA'];
+    const statuses = ['LIVE', 'COMING_SOON', 'BETA', 'ACTIVE'];
     const result = await service.getProductsByStatuses(statuses);
 
     // Return only public-safe fields for public display

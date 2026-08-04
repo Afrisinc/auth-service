@@ -4,7 +4,7 @@ import * as crypto from 'node:crypto';
 import { env } from '@/config/env';
 import { logger } from '@/utils/logger';
 
-const SERVICE_SECRET = env.SERVICE_SECRET as string;
+const SERVICE_SECRET = env.SERVICE_SECRET ?? process.env.SERVICE_SECRET ?? '';
 const TIMESTAMP_TOLERANCE = 300; // 5 minutes in seconds
 
 interface SignatureVerificationOptions {
@@ -13,8 +13,12 @@ interface SignatureVerificationOptions {
 }
 
 function verifyGatewaySignature(request: FastifyRequest): void {
-  const signature = request.headers['x-gateway-signature'] as string;
-  const timestamp = request.headers['x-gateway-timestamp'] as string;
+  const signature =
+    (request.headers['x-gateway-signature'] as string | undefined) ||
+    (request.headers['X-Gateway-Signature'] as string | undefined);
+  const timestamp =
+    (request.headers['x-gateway-timestamp'] as string | undefined) ||
+    (request.headers['X-Gateway-Timestamp'] as string | undefined);
 
   if (!signature || !timestamp) {
     throw new Error('Missing gateway signature headers');

@@ -99,4 +99,17 @@ export class OrganizationRepository {
       },
     });
   }
+
+  async getOrganizationAccountWithProducts(organizationId: string) {
+    return prisma.account.findFirst({
+      where: { organization_id: organizationId },
+      include: {
+        products: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+  }
 }

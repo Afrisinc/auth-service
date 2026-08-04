@@ -4,6 +4,7 @@ import {
   getUserAccounts,
   getUserAccountsById,
   enrollProduct,
+  removeProduct,
   switchProduct,
   getAccountProducts,
   getAllAccounts,
@@ -12,6 +13,7 @@ import {
   GetAccountRouteSchema,
   GetUserAccountsRouteSchema,
   EnrollProductRouteSchema,
+  RemoveProductRouteSchema,
   SwitchProductRouteSchema,
   GetAccountProductsRouteSchema,
   GetAllAccountsSchema,
@@ -47,6 +49,13 @@ export async function accountRoutes(app: FastifyInstance) {
     '/accounts/:accountId/enroll-product',
     { schema: EnrollProductRouteSchema, onRequest: [authGuard] },
     enrollProduct
+  );
+
+  // Remove product from account
+  app.delete(
+    '/accounts/:accountId/products/:productCode',
+    { schema: RemoveProductRouteSchema, onRequest: [authGuard] },
+    removeProduct
   );
 
   // Switch product (get product-scoped token)

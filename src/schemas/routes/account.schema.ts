@@ -136,11 +136,13 @@ export const EnrollProductRouteSchema = {
       product_code: {
         type: 'string',
         description: 'Product code (e.g. notify, media, billing)',
+        default: 'notify',
       },
       plan: {
         type: 'string',
         enum: ['FREE', 'PRO', 'ENTERPRISE'],
         description: 'Subscription plan (default: FREE)',
+        default: 'FREE',
       },
     },
     required: ['product_code'],
@@ -180,10 +182,12 @@ export const SwitchProductRouteSchema = {
       account_id: {
         type: 'string',
         description: 'Account ID',
+        default: 'afrisinc-org-id-account',
       },
       product_code: {
         type: 'string',
         description: 'Product code to switch to',
+        default: 'notify',
       },
     },
     required: ['account_id', 'product_code'],
@@ -209,6 +213,50 @@ export const SwitchProductRouteSchema = {
     },
     400: ErrorResponseSchema,
     401: ErrorResponseSchema,
+  },
+} as const;
+
+export const RemoveProductRouteSchema = {
+  tags: ['products'],
+  summary: 'Remove product from account',
+  description: 'Remove a product enrollment from an account',
+  params: {
+    type: 'object',
+    properties: {
+      accountId: {
+        type: 'string',
+        description: 'Account ID',
+        default: 'afrisinc-org-id-account',
+      },
+      productCode: {
+        type: 'string',
+        description: 'Product code to remove (e.g. notify, media, billing)',
+        default: 'notify',
+      },
+    },
+    required: ['accountId', 'productCode'],
+  },
+  security: [{ bearerAuth: [] }],
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Product removed from account successfully' },
+        resp_code: { type: 'number', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            account_id: { type: 'string' },
+            product_code: { type: 'string' },
+            removed: { type: 'boolean', example: true },
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
+    401: ErrorResponseSchema,
+    404: ErrorResponseSchema,
   },
 } as const;
 

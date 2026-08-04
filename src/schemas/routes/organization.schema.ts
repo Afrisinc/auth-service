@@ -223,6 +223,64 @@ export const RemoveMemberRouteSchema = {
   },
 } as const;
 
+export const GetOrganizationProductsSchema = {
+  tags: ['organizations'],
+  summary: 'Get organization products',
+  description: 'Get all products the organization is enrolled in',
+  params: {
+    type: 'object',
+    properties: {
+      organizationId: {
+        type: 'string',
+        description: 'Organization ID',
+        default: 'afrisinc-org-id',
+      },
+    },
+    required: ['organizationId'],
+  },
+  security: [{ bearerAuth: [] }],
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Organization products retrieved successfully' },
+        resp_code: { type: 'number', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            products: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                  code: { type: 'string' },
+                  description: { type: 'string', nullable: true },
+                  status: { type: 'string' },
+                  baseUrl: { type: 'string' },
+                  enrollment: {
+                    type: 'object',
+                    properties: {
+                      enrollmentId: { type: 'string' },
+                      status: { type: 'string' },
+                      plan: { type: 'string' },
+                      enrolledAt: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    401: ErrorResponseSchema,
+    404: ErrorResponseSchema,
+  },
+} as const;
+
 export const ListMembersRouteSchema = {
   tags: ['organizations'],
   summary: 'List organization members',

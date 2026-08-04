@@ -113,6 +113,33 @@ export class OrganizationService {
     return memberData.legacy_role === 'OWNER';
   }
 
+  async getOrganizationProducts(organizationId: string) {
+    const org = await orgRepo.findById(organizationId);
+    if (!org) {
+      throw new Error('ORGANIZATION_NOT_FOUND');
+    }
+
+    const account = await orgRepo.getOrganizationAccountWithProducts(organizationId);
+    if (!account) {
+      return [];
+    }
+
+    return account.products.map(enrollment => ({
+      id: enrollment.product.id,
+      name: enrollment.product.name,
+      code: enrollment.product.code,
+      description: enrollment.product.description,
+      status: enrollment.product.status,
+      baseUrl: enrollment.product.baseUrl,
+      enrollment: {
+        enrollmentId: enrollment.id,
+        status: enrollment.status,
+        plan: enrollment.plan,
+        enrolledAt: enrollment.createdAt,
+      },
+    }));
+  }
+
   async getAllOrganizations(page: number = 1, limit: number = 10, search?: string, status?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};

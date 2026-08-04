@@ -152,51 +152,87 @@ export class ProductRepository {
   }
 
   async getUserAssignedProducts(userId: string) {
-    // Get all accounts owned by the user
     const ownedAccounts = await prisma.account.findMany({
       where: { owner_user_id: userId },
-      select: { id: true },
+      select: { id: true, type: true, organization_id: true },
     });
 
-    // Get organizations the user is a member of
     const memberships = await prisma.organizationMember.findMany({
       where: { user_id: userId },
-      select: { organization_id: true },
+      include: { role: true },
     });
 
     const organizationIds = memberships.map(m => m.organization_id);
 
-    // Get accounts belonging to those organizations
+    const superAdminOrgIds = new Set(
+      memberships.filter(m => m.role?.name === 'SUPER_ADMIN').map(m => m.organization_id)
+    );
+
     const orgAccounts = await prisma.account.findMany({
       where: { organization_id: { in: organizationIds } },
-      select: { id: true },
+      select: { id: true, type: true, organization_id: true },
     });
 
-    // Combine all account IDs (owned + organization membership)
-    const accountIds = [...ownedAccounts.map(a => a.id), ...orgAccounts.map(a => a.id)].filter(
-      (id, index, arr) => arr.indexOf(id) === index
-    ); // Remove duplicates
+    const memberProductAccess = await prisma.memberProductAccess.findMany({
+      where: {
+        user_id: userId,
+        organization_id: { in: organizationIds },
+      },
+      select: { product_id: true, organization_id: true },
+    });
 
-    if (accountIds.length === 0) {
-      return [];
+    const accessibleOrgProducts = new Map<string, Set<string>>();
+    for (const access of memberProductAccess) {
+      if (!accessibleOrgProducts.has(access.organization_id)) {
+        accessibleOrgProducts.set(access.organization_id, new Set());
+      }
+      accessibleOrgProducts.get(access.organization_id)!.add(access.product_id);
     }
 
-    // Get all product enrollments for these accounts
-    const enrollments = await prisma.accountProduct.findMany({
-      where: { account_id: { in: accountIds } },
+    const individualAccountIds = ownedAccounts.filter(a => a.type === 'INDIVIDUAL').map(a => a.id);
+
+    const individualEnrollments = await prisma.accountProduct.findMany({
+      where: { account_id: { in: individualAccountIds } },
       include: {
         product: true,
-        account: {
-          select: {
-            id: true,
-            type: true,
-          },
-        },
+        account: { select: { id: true, type: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return enrollments.map(enrollment => ({
+    const allOrgAccountIds = [...ownedAccounts, ...orgAccounts]
+      .filter(a => a.type === 'ORGANIZATION')
+      .map(a => a.id);
+
+    const orgEnrollments = await prisma.accountProduct.findMany({
+      where: { account_id: { in: allOrgAccountIds } },
+      include: {
+        product: true,
+        account: { select: { id: true, type: true, organization_id: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const filteredOrgEnrollments = orgEnrollments.filter(enrollment => {
+      const orgId = enrollment.account.organization_id;
+      if (!orgId) {
+        return false;
+      }
+
+      if (superAdminOrgIds.has(orgId)) {
+        return true;
+      }
+
+      const accessSet = accessibleOrgProducts.get(orgId);
+      if (!accessSet || accessSet.size === 0) {
+        return false;
+      }
+      return accessSet.has(enrollment.product_id);
+    });
+
+    const allEnrollments = [...individualEnrollments, ...filteredOrgEnrollments];
+
+    return allEnrollments.map(enrollment => ({
       id: enrollment.product.id,
       name: enrollment.product.name,
       code: enrollment.product.code,
