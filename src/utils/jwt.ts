@@ -1,14 +1,15 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import { env } from '../config/env';
 
 // Base token issued on login
-export const generateBaseToken = (userId: string, email: string, accountIds: string[]) =>
+export const generateBaseToken = (userId: string, email: string, accountIds: string[], name?: string) =>
   jwt.sign(
     {
       sub: userId,
       email,
+      name,
       account_ids: accountIds,
       type: 'base',
     },
@@ -17,24 +18,28 @@ export const generateBaseToken = (userId: string, email: string, accountIds: str
   );
 
 // Product-scoped token issued when user selects a product
-export const generateProductScopedToken = (
-  userId: string,
-  email: string,
-  accountId: string,
-  accountType: string,
-  productCode: string,
-  resourceId: string,
-  role?: string
-) =>
+interface ProductTokenParams {
+  userId: string;
+  email: string;
+  accountId: string;
+  accountType: string;
+  productCode: string;
+  resourceId: string;
+  role?: string;
+  name?: string;
+}
+
+export const generateProductScopedToken = (params: ProductTokenParams) =>
   jwt.sign(
     {
-      sub: userId,
-      email,
-      account_id: accountId,
-      account_type: accountType,
-      product: productCode,
-      resource_id: resourceId,
-      role: role || 'member',
+      sub: params.userId,
+      email: params.email,
+      name: params.name,
+      account_id: params.accountId,
+      account_type: params.accountType,
+      product: params.productCode,
+      resource_id: params.resourceId,
+      role: params.role || 'member',
       type: 'product',
     },
     env.JWT_SECRET,

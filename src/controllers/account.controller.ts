@@ -118,14 +118,15 @@ export async function switchProduct(req: FastifyRequest, reply: FastifyReply) {
     }
 
     // Generate product-scoped token with resource_id
-    const token = generateProductScopedToken(
+    const token = generateProductScopedToken({
       userId,
       email,
-      account_id,
-      account.type,
-      product_code,
-      enrollment.external_resource_id
-    );
+      accountId: account_id,
+      accountType: account.type,
+      productCode: product_code,
+      resourceId: enrollment.external_resource_id,
+      name: (req as any).user?.name,
+    });
 
     return ApiResponseHelper.success(reply, 'Product switched successfully', {
       account_id,

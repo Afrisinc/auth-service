@@ -133,7 +133,12 @@ export class AuthService {
       }
     }
 
-    const token = generateBaseToken(result.user.id, result.user.email, [result.account.id]);
+    const token = generateBaseToken(
+      result.user.id,
+      result.user.email,
+      [result.account.id],
+      [result.user.firstName, result.user.lastName].filter(Boolean).join(' ') || undefined
+    );
 
     const response: any = {
       user_id: result.user.id,
@@ -311,7 +316,12 @@ export class AuthService {
     }
 
     // Generate the JWT token
-    const token = generateBaseToken(authCodeRecord.user_id, authCodeRecord.user.email, accountIds);
+    const token = generateBaseToken(
+      authCodeRecord.user_id,
+      authCodeRecord.user.email,
+      accountIds,
+      [authCodeRecord.user.firstName, authCodeRecord.user.lastName].filter(Boolean).join(' ') || undefined
+    );
 
     const response: any = {
       user_id: authCodeRecord.user_id,

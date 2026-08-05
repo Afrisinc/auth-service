@@ -7,6 +7,7 @@ interface JwtPayload {
   sub?: string;
   userId?: string;
   email: string;
+  name?: string;
   account_ids?: string[];
   account_id?: string;
   account_type?: string;
@@ -24,6 +25,7 @@ declare module 'fastify' {
       sub?: string;
       userId?: string;
       email: string;
+      name?: string;
       account_ids?: string[];
       account_id?: string;
       account_type?: string;
@@ -126,6 +128,7 @@ export const authGuard = async (request: FastifyRequest, reply: FastifyReply) =>
       sub: decoded.sub,
       userId: decoded.userId,
       email: decoded.email,
+      name: decoded.name,
       account_ids: decoded.account_ids,
       account_id: decoded.account_id,
       account_type: decoded.account_type,
