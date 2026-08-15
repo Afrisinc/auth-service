@@ -36,8 +36,14 @@ ALTER TABLE "member_product_access" ADD CONSTRAINT "member_product_access_user_i
 -- AddForeignKey
 ALTER TABLE "member_product_access" ADD CONSTRAINT "member_product_access_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "member_product_access" ADD CONSTRAINT "member_product_access_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- AddForeignKey (only if roles table exists)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'roles') THEN
+    ALTER TABLE "member_product_access" ADD CONSTRAINT "member_product_access_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END
+$$;
 
 -- AddForeignKey
 ALTER TABLE "member_product_access" ADD CONSTRAINT "member_product_access_granted_by_fkey" FOREIGN KEY ("granted_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

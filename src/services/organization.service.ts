@@ -1,5 +1,6 @@
 import { OrganizationRepository } from '../repositories/organization.repository';
 import { prisma } from '../database/prismaClient';
+import { env } from '../config/env';
 
 const orgRepo = new OrganizationRepository();
 
@@ -124,20 +125,32 @@ export class OrganizationService {
       return [];
     }
 
-    return account.products.map(enrollment => ({
-      id: enrollment.product.id,
-      name: enrollment.product.name,
-      code: enrollment.product.code,
-      description: enrollment.product.description,
-      status: enrollment.product.status,
-      baseUrl: enrollment.product.baseUrl,
-      enrollment: {
-        enrollmentId: enrollment.id,
-        status: enrollment.status,
-        plan: enrollment.plan,
-        enrolledAt: enrollment.createdAt,
-      },
-    }));
+    return account.products.map(enrollment => {
+      const product = enrollment.product as any;
+      return {
+        id: product.id,
+        name: product.name,
+        code: product.code,
+        description: product.description,
+        status: product.status,
+        baseUrl: product.baseUrl,
+        partner: product.partner
+          ? {
+              id: product.partner.id,
+              name: product.partner.name,
+              email: product.partner.email,
+              phone: product.partner.phone,
+              location: product.partner.location,
+            }
+          : null,
+        enrollment: {
+          enrollmentId: enrollment.id,
+          status: enrollment.status,
+          plan: enrollment.plan,
+          enrolledAt: enrollment.createdAt,
+        },
+      };
+    });
   }
 
   async getAllOrganizations(page: number = 1, limit: number = 10, search?: string, status?: string) {
@@ -169,6 +182,31 @@ export class OrganizationService {
         hasNext: page < Math.ceil(total / limit),
         hasPrev: page > 1,
       },
+    };
+  }
+
+  async deleteOrganization(organizationId: string, userId: string) {
+    const org = await orgRepo.findById(organizationId);
+    if (!org) {
+      throw new Error('ORGANIZATION_NOT_FOUND');
+    }
+
+    const user = await orgRepo.userExists(userId);
+    if (!user) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    const isEmailAllowed = env.ALLOWED_DELETE_EMAILS.includes(user.email);
+    if (!isEmailAllowed) {
+      throw new Error('EMAIL_NOT_AUTHORIZED');
+    }
+
+    await orgRepo.delete(organizationId);
+
+    return {
+      id: organizationId,
+      deleted: true,
+      message: 'Organization and all related data permanently deleted',
     };
   }
 }

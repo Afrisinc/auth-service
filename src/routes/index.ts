@@ -9,6 +9,7 @@ import { productRoutes } from './product.routes';
 import { securityRoutes } from './security.routes';
 import { adminRoutes } from './admin.routes';
 import { memberProductAccessRoutes } from './member-product-access.routes';
+import { partnerRoutes } from './partner.routes';
 
 export async function registerRoutes(app: FastifyInstance) {
   app.get(
@@ -27,6 +28,7 @@ export async function registerRoutes(app: FastifyInstance) {
   app.register(accountRoutes);
   app.register(platformRoutes);
   app.register(productRoutes);
+  app.register(partnerRoutes);
   app.register(securityRoutes);
   app.register(adminRoutes);
   app.register(memberProductAccessRoutes);

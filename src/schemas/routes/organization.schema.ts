@@ -260,6 +260,17 @@ export const GetOrganizationProductsSchema = {
                   description: { type: 'string', nullable: true },
                   status: { type: 'string' },
                   baseUrl: { type: 'string' },
+                  partner: {
+                    type: 'object',
+                    nullable: true,
+                    properties: {
+                      id: { type: 'string' },
+                      name: { type: 'string' },
+                      email: { type: 'string' },
+                      phone: { type: 'string' },
+                      location: { type: 'string' },
+                    },
+                  },
                   enrollment: {
                     type: 'object',
                     properties: {
@@ -453,5 +464,140 @@ export const GetAllOrganizationsSchema = {
     },
     400: ErrorResponseSchema,
     401: ErrorResponseSchema,
+  },
+} as const;
+
+export const UpdateOrganizationProductSchema = {
+  tags: ['organizations'],
+  summary: 'Update organization product and enrollment',
+  description:
+    'Update product details (name, description, status) and/or enrollment details (enrollment status, plan)',
+  params: {
+    type: 'object',
+    properties: {
+      organizationId: {
+        type: 'string',
+        description: 'Organization ID',
+      },
+      productId: {
+        type: 'string',
+        description: 'Product ID',
+      },
+    },
+    required: ['organizationId', 'productId'],
+  },
+  body: {
+    type: 'object',
+    properties: {
+      name: {
+        type: 'string',
+        description: 'Product name',
+      },
+      description: {
+        type: 'string',
+        description: 'Product description',
+      },
+      baseUrl: {
+        type: 'string',
+        description: 'Product base URL',
+      },
+      status: {
+        type: 'string',
+        enum: ['PROVISIONING', 'ACTIVE', 'SUSPENDED', 'DEPRECATED', 'COMING_SOON'],
+        description: 'Product status',
+      },
+      enrollmentStatus: {
+        type: 'string',
+        enum: ['PROVISIONING', 'ACTIVE', 'SUSPENDED', 'DEPRECATED', 'COMING_SOON'],
+        description: 'Enrollment status',
+      },
+      plan: {
+        type: 'string',
+        enum: ['FREE', 'PRO', 'ENTERPRISE'],
+        description: 'Enrollment plan',
+      },
+    },
+  },
+  security: [{ bearerAuth: [] }],
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Product and enrollment updated successfully' },
+        resp_code: { type: 'integer', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            product: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                code: { type: 'string' },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                baseUrl: { type: 'string' },
+              },
+            },
+            enrollment: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                account_id: { type: 'string' },
+                product_id: { type: 'string' },
+                status: { type: 'string' },
+                plan: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
+    401: ErrorResponseSchema,
+    404: ErrorResponseSchema,
+  },
+} as const;
+
+export const DeleteOrganizationSchema = {
+  tags: ['organizations'],
+  summary: 'Delete organization',
+  description:
+    'Permanently delete an organization and all its related data (members, accounts, products, partners, access records). This action cannot be undone.',
+  params: {
+    type: 'object',
+    properties: {
+      organizationId: {
+        type: 'string',
+        description: 'Organization ID',
+        default: 'org-id-here',
+      },
+    },
+    required: ['organizationId'],
+  },
+  security: [{ bearerAuth: [] }],
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Organization deleted successfully' },
+        resp_code: { type: 'integer', example: 1000 },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            deleted: { type: 'boolean', example: true },
+            message: {
+              type: 'string',
+              example: 'Organization and all related data permanently deleted',
+            },
+          },
+        },
+      },
+    },
+    401: ErrorResponseSchema,
+    404: ErrorResponseSchema,
   },
 } as const;

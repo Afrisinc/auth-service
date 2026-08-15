@@ -118,3 +118,29 @@ export async function getAllOrganizations(req: FastifyRequest, reply: FastifyRep
     return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
   }
 }
+
+export async function deleteOrganization(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { organizationId } = req.params as { organizationId: string };
+    const userId = (req as any).user?.sub || (req as any).user?.userId;
+
+    if (!userId) {
+      return ApiResponseHelper.unauthorized(reply, 'User not authenticated');
+    }
+
+    const result = await service.deleteOrganization(organizationId, userId);
+    return ApiResponseHelper.success(reply, 'Organization deleted successfully', result);
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    if (message === 'ORGANIZATION_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Organization not found');
+    }
+    if (message === 'USER_NOT_FOUND') {
+      return ApiResponseHelper.unauthorized(reply, 'User not found in system');
+    }
+    if (message === 'EMAIL_NOT_AUTHORIZED') {
+      return ApiResponseHelper.forbidden(reply, 'Your email is not authorized to delete organizations');
+    }
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}

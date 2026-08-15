@@ -13,6 +13,59 @@ export class ProductRepository {
     return prisma.product.findUnique({ where: { code } });
   }
 
+  async findOrganizationById(organizationId: string) {
+    return prisma.organization.findUnique({ where: { id: organizationId } });
+  }
+
+  async findPartnerByIdAndOrg(partnerId: string, organizationId: string) {
+    const partner = await prisma.partner.findUnique({
+      where: { id: partnerId },
+    });
+    return partner?.organization_id === organizationId ? partner : null;
+  }
+
+  async findOrganizationAccount(organizationId: string) {
+    return prisma.account.findFirst({
+      where: {
+        organization_id: organizationId,
+        type: 'ORGANIZATION',
+      },
+    });
+  }
+
+  async createEnrollment(data: { account_id: string; product_id: string; status: string; plan: string }) {
+    return prisma.accountProduct.create({
+      data: {
+        account_id: data.account_id,
+        product_id: data.product_id,
+        status: data.status as any,
+        plan: data.plan as any,
+      },
+    });
+  }
+
+  async findEnrollment(accountId: string, productId: string) {
+    return prisma.accountProduct.findUnique({
+      where: {
+        account_id_product_id: {
+          account_id: accountId,
+          product_id: productId,
+        },
+      },
+    });
+  }
+
+  async updateEnrollment(enrollmentId: string, data: any) {
+    return prisma.accountProduct.update({
+      where: { id: enrollmentId },
+      data,
+      include: {
+        product: true,
+        account: true,
+      },
+    });
+  }
+
   async findByCodeWithCallbacks(code: string) {
     return prisma.product.findUnique({
       where: { code },
@@ -194,7 +247,16 @@ export class ProductRepository {
     const individualEnrollments = await prisma.accountProduct.findMany({
       where: { account_id: { in: individualAccountIds } },
       include: {
-        product: true,
+        product: {
+          include: {
+            partner: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         account: { select: { id: true, type: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -207,7 +269,16 @@ export class ProductRepository {
     const orgEnrollments = await prisma.accountProduct.findMany({
       where: { account_id: { in: allOrgAccountIds } },
       include: {
-        product: true,
+        product: {
+          include: {
+            partner: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         account: { select: { id: true, type: true, organization_id: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -239,6 +310,7 @@ export class ProductRepository {
       description: enrollment.product.description,
       status: enrollment.product.status,
       baseUrl: enrollment.product.baseUrl,
+      partner: enrollment.product.partner,
       enrollment: {
         enrollmentId: enrollment.id,
         accountId: enrollment.account.id,

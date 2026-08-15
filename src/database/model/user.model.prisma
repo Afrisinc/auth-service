@@ -32,6 +32,12 @@ enum LegacyOrganizationRole {
   MEMBER
 }
 
+enum PartnerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
 
 model User {
   id                String    @id @default(uuid())
@@ -91,6 +97,7 @@ model Organization {
   members           OrganizationMember[]
   accounts          Account[]
   memberProductAccess MemberProductAccess[]
+  partners          Partner[]
 
   @@map("organizations")
 }
@@ -132,6 +139,28 @@ model Account {
   @@map("accounts")
 }
 
+model Partner {
+  id                String    @id @default(uuid())
+  organization_id   String
+  name              String
+  email             String?
+  phone             String?
+  location          String?
+  description       String?
+  status            PartnerStatus @default(ACTIVE)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  products          Product[]
+
+  @@unique([organization_id, name])
+  @@index([organization_id])
+  @@index([status])
+  @@map("partners")
+}
+
 model Product {
   id                String    @id @default(uuid())
   name              String
@@ -139,6 +168,7 @@ model Product {
   description       String?
   baseUrl           String    @default("")    // e.g., "https://notify.afrisinc.com"
   allowedCallbacks  Json      @default("[]") // Array of allowed redirect URLs: ["https://notify.afrisinc.com/auth/callback"]
+  partner_id        String?
   status            ProductStatus    @default(PROVISIONING)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -146,7 +176,9 @@ model Product {
   // Relations
   accounts          AccountProduct[]
   memberAccess      MemberProductAccess[]
+  partner           Partner? @relation(fields: [partner_id], references: [id], onDelete: SetNull)
 
+  @@index([partner_id])
   @@map("products")
 }
 

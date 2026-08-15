@@ -100,13 +100,59 @@ export class OrganizationRepository {
     });
   }
 
+  async getMemberWithRole(organizationId: string, userId: string) {
+    return prisma.organizationMember.findUnique({
+      where: {
+        organization_id_user_id: {
+          organization_id: organizationId,
+          user_id: userId,
+        },
+      },
+      include: { role: true },
+    });
+  }
+
+  async userExists(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+    return user;
+  }
+
+  async userHasSuperAdminRole(organizationId: string, userId: string) {
+    const member = await prisma.organizationMember.findUnique({
+      where: {
+        organization_id_user_id: {
+          organization_id: organizationId,
+          user_id: userId,
+        },
+      },
+      include: { role: true },
+    });
+
+    return member?.role?.name === 'SUPER_ADMIN';
+  }
+
   async getOrganizationAccountWithProducts(organizationId: string) {
     return prisma.account.findFirst({
       where: { organization_id: organizationId },
       include: {
         products: {
           include: {
-            product: true,
+            product: {
+              include: {
+                partner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                    location: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

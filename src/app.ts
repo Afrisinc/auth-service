@@ -26,7 +26,7 @@ const createApp = async (): Promise<FastifyInstance> => {
     ajv: {
       customOptions: {
         removeAdditional: 'all',
-        useDefaults: true,
+        useDefaults: false,
         coerceTypes: true,
         strict: false,
       },

@@ -194,6 +194,17 @@ export const GetUserProductsSchema = {
               description: { type: 'string', nullable: true },
               status: { type: 'string' },
               baseUrl: { type: 'string', nullable: true },
+              partner: {
+                type: 'object',
+                nullable: true,
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                  email: { type: 'string' },
+                  phone: { type: 'string' },
+                  location: { type: 'string' },
+                },
+              },
               enrollment: {
                 type: 'object',
                 properties: {
@@ -235,6 +246,22 @@ export const CreateProductSchema = {
         description: 'Product description (optional)',
         nullable: true,
       },
+      partner_id: {
+        type: 'string',
+        description: 'Partner ID (optional)',
+        nullable: true,
+      },
+      baseUrl: {
+        type: 'string',
+        description: 'Product base URL (optional)',
+        default: '',
+      },
+      allowedCallbacks: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Allowed callback URLs (optional)',
+        default: [],
+      },
     },
     required: ['name', 'code'],
   },
@@ -253,6 +280,9 @@ export const CreateProductSchema = {
             name: { type: 'string' },
             code: { type: 'string' },
             description: { type: 'string', nullable: true },
+            baseUrl: { type: 'string' },
+            allowedCallbacks: { type: 'array' },
+            partner_id: { type: 'string', nullable: true },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
           },
@@ -261,5 +291,82 @@ export const CreateProductSchema = {
     },
     400: ErrorResponseSchema,
     401: ErrorResponseSchema,
+  },
+} as const;
+
+export const CreateOrganizationProductSchema = {
+  tags: ['products'],
+  summary: 'Create product for organization',
+  description: 'Create a new product in organization context with optional partner and URLs',
+  params: {
+    type: 'object',
+    properties: {
+      organizationId: { type: 'string', description: 'Organization ID', default: 'org-id-here' },
+    },
+    required: ['organizationId'],
+  },
+  body: {
+    type: 'object',
+    properties: {
+      name: {
+        type: 'string',
+        description: 'Product name',
+      },
+      code: {
+        type: 'string',
+        description: 'Product code (short identifier, must be unique)',
+      },
+      description: {
+        type: 'string',
+        description: 'Product description (optional)',
+        nullable: true,
+      },
+      partner_id: {
+        type: 'string',
+        description: 'Partner ID (optional)',
+        nullable: true,
+      },
+      baseUrl: {
+        type: 'string',
+        description: 'Product base URL (optional)',
+        default: '',
+      },
+      allowedCallbacks: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Allowed callback URLs (optional)',
+        default: [],
+      },
+    },
+    required: ['name', 'code'],
+  },
+  security: [{ bearerAuth: [] }],
+  response: {
+    201: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        resp_msg: { type: 'string', example: 'Product created successfully' },
+        resp_code: { type: 'integer', example: 1001 },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            code: { type: 'string' },
+            description: { type: 'string', nullable: true },
+            status: { type: 'string', example: 'PROVISIONING' },
+            baseUrl: { type: 'string' },
+            allowedCallbacks: { type: 'array' },
+            partner_id: { type: 'string', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+    400: ErrorResponseSchema,
+    401: ErrorResponseSchema,
+    404: ErrorResponseSchema,
   },
 } as const;

@@ -44,20 +44,81 @@ export async function getProductAccounts(req: FastifyRequest, reply: FastifyRepl
 
 export async function createProduct(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const { name, code, description } = req.body as {
+    const { name, code, description, partner_id, baseUrl, allowedCallbacks } = req.body as {
       name: string;
       code: string;
       description?: string;
+      partner_id?: string;
+      baseUrl?: string;
+      allowedCallbacks?: string[];
     };
 
     if (!name || !code) {
       return ApiResponseHelper.badRequest(reply, 'Name and code are required');
     }
 
-    const result = await service.createProduct(name, code, description);
+    const result = await service.createProduct(
+      name,
+      code,
+      description,
+      partner_id,
+      baseUrl,
+      allowedCallbacks
+    );
     return ApiResponseHelper.created(reply, 'Product created successfully', result);
   } catch (err: unknown) {
-    return ApiResponseHelper.badRequest(reply, getErrorMessage(err));
+    const message = getErrorMessage(err);
+    if (message === 'PARTNER_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Partner not found');
+    }
+    if (message === 'PRODUCT_CODE_EXISTS') {
+      return ApiResponseHelper.badRequest(reply, 'Product code already exists');
+    }
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}
+
+export async function createOrganizationProduct(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { organizationId } = req.params as { organizationId: string };
+    const { name, code, description, partner_id, baseUrl, allowedCallbacks } = req.body as {
+      name: string;
+      code: string;
+      description?: string;
+      partner_id?: string;
+      baseUrl?: string;
+      allowedCallbacks?: string[];
+    };
+
+    if (!name || !code) {
+      return ApiResponseHelper.badRequest(reply, 'Name and code are required');
+    }
+
+    const result = await service.createOrganizationProduct(
+      organizationId,
+      name,
+      code,
+      description,
+      partner_id,
+      baseUrl,
+      allowedCallbacks
+    );
+    return ApiResponseHelper.created(reply, 'Product created successfully', result);
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    if (message === 'ORGANIZATION_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Organization not found');
+    }
+    if (message === 'PARTNER_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Partner not found');
+    }
+    if (message === 'PRODUCT_CODE_EXISTS') {
+      return ApiResponseHelper.badRequest(reply, 'Product code already exists');
+    }
+    if (message === 'PARTNER_NOT_IN_ORG') {
+      return ApiResponseHelper.badRequest(reply, 'Partner does not belong to this organization');
+    }
+    return ApiResponseHelper.badRequest(reply, message);
   }
 }
 
@@ -117,6 +178,58 @@ export async function updateProduct(req: FastifyRequest, reply: FastifyReply) {
     const message = getErrorMessage(err);
     if (message === 'Product not found') {
       return ApiResponseHelper.notFound(reply, message);
+    }
+    return ApiResponseHelper.badRequest(reply, message);
+  }
+}
+
+export async function updateOrganizationProduct(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { organizationId, productId } = req.params as {
+      organizationId: string;
+      productId: string;
+    };
+    const {
+      name,
+      description,
+      baseUrl,
+      status: productStatus,
+      enrollmentStatus,
+      plan,
+    } = req.body as {
+      name?: string;
+      description?: string;
+      baseUrl?: string;
+      status?: string;
+      enrollmentStatus?: string;
+      plan?: string;
+    };
+
+    const productData = { name, description, baseUrl, status: productStatus };
+    const enrollmentData = { status: enrollmentStatus, plan };
+
+    if (!Object.values(productData).some(v => v) && !Object.values(enrollmentData).some(v => v)) {
+      return ApiResponseHelper.badRequest(
+        reply,
+        'At least one field required: name, description, baseUrl, status, enrollmentStatus, or plan'
+      );
+    }
+
+    const result = await service.updateOrganizationProduct(organizationId, productId, {
+      productData,
+      enrollmentData,
+    });
+    return ApiResponseHelper.success(reply, 'Product and enrollment updated successfully', result);
+  } catch (err: unknown) {
+    const message = getErrorMessage(err);
+    if (message === 'ORGANIZATION_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Organization not found');
+    }
+    if (message === 'PRODUCT_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Product not found');
+    }
+    if (message === 'ENROLLMENT_NOT_FOUND') {
+      return ApiResponseHelper.notFound(reply, 'Product enrollment not found');
     }
     return ApiResponseHelper.badRequest(reply, message);
   }

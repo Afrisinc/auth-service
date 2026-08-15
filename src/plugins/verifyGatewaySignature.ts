@@ -40,6 +40,18 @@ function verifyGatewaySignature(request: FastifyRequest): void {
 
   const expectedSignature = crypto.createHmac('sha256', SERVICE_SECRET).update(data).digest('hex');
 
+  logger.debug(
+    {
+      method,
+      path,
+      receivedSignature: signature,
+      expectedSignature,
+      timestamp,
+      bodyStr: body,
+    },
+    'Signature verification debug info'
+  );
+
   if (signature !== expectedSignature) {
     throw new Error('Invalid gateway signature');
   }

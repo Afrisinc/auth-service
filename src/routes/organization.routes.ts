@@ -8,7 +8,9 @@ import {
   listMembers,
   updateOrganization,
   getAllOrganizations,
+  deleteOrganization,
 } from '../controllers/organization.controller';
+import { createOrganizationProduct, updateOrganizationProduct } from '../controllers/product.controller';
 import {
   CreateOrganizationRouteSchema,
   GetOrganizationRouteSchema,
@@ -17,6 +19,9 @@ import {
   RemoveMemberRouteSchema,
   ListMembersRouteSchema,
   GetAllOrganizationsSchema,
+  CreateOrganizationProductSchema,
+  UpdateOrganizationProductSchema,
+  DeleteOrganizationSchema,
 } from '../schemas';
 import { authGuard } from '../middlewares/authGuard';
 
@@ -49,6 +54,20 @@ export async function organizationRoutes(app: FastifyInstance) {
     getOrganizationProducts
   );
 
+  // Create product for organization
+  app.post(
+    '/organizations/:organizationId/products',
+    { schema: CreateOrganizationProductSchema, onRequest: [authGuard] },
+    createOrganizationProduct
+  );
+
+  // Update product for organization
+  app.put(
+    '/organizations/:organizationId/products/:productId',
+    { schema: UpdateOrganizationProductSchema, onRequest: [authGuard] },
+    updateOrganizationProduct
+  );
+
   // Update organization
   app.put('/organizations/:organizationId', { onRequest: [authGuard] }, updateOrganization);
 
@@ -71,5 +90,12 @@ export async function organizationRoutes(app: FastifyInstance) {
     '/organizations/:organizationId/members',
     { schema: ListMembersRouteSchema, onRequest: [authGuard] },
     listMembers
+  );
+
+  // Delete organization
+  app.delete(
+    '/organizations/:organizationId',
+    { schema: DeleteOrganizationSchema, onRequest: [authGuard] },
+    deleteOrganization
   );
 }

@@ -15,4 +15,5 @@ export const env = {
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   ADMIN_CALLBACK_URL: process.env.ADMIN_CALLBACK_URL,
   SERVICE_SECRET: process.env.SERVICE_SECRET,
+  ALLOWED_DELETE_EMAILS: process.env.ALLOWED_DELETE_EMAILS?.split(',').map(e => e.trim()) || [],
 } as const;
