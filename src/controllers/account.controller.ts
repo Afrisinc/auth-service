@@ -117,6 +117,8 @@ export async function switchProduct(req: FastifyRequest, reply: FastifyReply) {
       return ApiResponseHelper.notFound(reply, 'Account not found');
     }
 
+    const role = await service.getUserRoleForAccount(userId, account_id);
+
     // Generate product-scoped token with resource_id
     const token = generateProductScopedToken({
       userId,
@@ -126,6 +128,7 @@ export async function switchProduct(req: FastifyRequest, reply: FastifyReply) {
       productCode: product_code,
       resourceId: enrollment.external_resource_id,
       name: (req as any).user?.name,
+      role,
     });
 
     return ApiResponseHelper.success(reply, 'Product switched successfully', {

@@ -4,13 +4,20 @@ import { randomBytes } from 'node:crypto';
 import { env } from '../config/env';
 
 // Base token issued on login
-export const generateBaseToken = (userId: string, email: string, accountIds: string[], name?: string) =>
+export const generateBaseToken = (
+  userId: string,
+  email: string,
+  accountIds: string[],
+  name?: string,
+  role?: string
+) =>
   jwt.sign(
     {
       sub: userId,
       email,
       name,
       account_ids: accountIds,
+      role,
       type: 'base',
     },
     env.JWT_SECRET,

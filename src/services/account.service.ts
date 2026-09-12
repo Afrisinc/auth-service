@@ -186,6 +186,30 @@ export class AccountService {
     return false;
   }
 
+  /**
+   * Resolve the role a user holds on an account, for embedding in a
+   * product-scoped token. The sole owner of an individually-owned account
+   * has no organization membership row, so they're implicitly 'OWNER';
+   * otherwise the role comes from their organization membership.
+   */
+  async getUserRoleForAccount(userId: string, accountId: string): Promise<string | undefined> {
+    const account = await accountRepo.findById(accountId);
+    if (!account) {
+      return undefined;
+    }
+
+    if (account.owner_user_id === userId) {
+      return 'OWNER';
+    }
+
+    if (account.organization_id) {
+      const member = await orgRepo.getMemberWithRole(account.organization_id, userId);
+      return member?.role?.name ?? undefined;
+    }
+
+    return undefined;
+  }
+
   async getAllAccounts(page: number = 1, limit: number = 10, search?: string, type?: string) {
     const skip = (page - 1) * limit;
     const where: any = {};

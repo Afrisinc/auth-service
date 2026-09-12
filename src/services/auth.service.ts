@@ -25,6 +25,25 @@ const productRepo = new ProductRepository();
 const authCodeRepo = new AuthorizationCodeRepository();
 const accountService = new AccountService();
 
+/**
+ * Look up a user's role name from their organization membership, so it can
+ * be embedded in the JWT (`generateBaseToken` previously issued tokens with
+ * no role claim at all, which silently defeated every role-based check
+ * downstream - gateway, notify-service, dashboards - since there was never
+ * a real role to check).
+ */
+async function getUserRoleName(userId: string): Promise<string | undefined> {
+  try {
+    const orgMember = await prisma.organizationMember.findFirst({
+      where: { user_id: userId },
+      select: { role: { select: { name: true } } },
+    });
+    return orgMember?.role?.name ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export class AuthService {
   async register(data: SignupPayload, fastify?: FastifyInstance) {
     const existing = await userRepo.findByEmail(data.email);
@@ -133,11 +152,13 @@ export class AuthService {
       }
     }
 
+    const role = await getUserRoleName(result.user.id);
     const token = generateBaseToken(
       result.user.id,
       result.user.email,
       [result.account.id],
-      [result.user.firstName, result.user.lastName].filter(Boolean).join(' ') || undefined
+      [result.user.firstName, result.user.lastName].filter(Boolean).join(' ') || undefined,
+      role
     );
 
     const response: any = {
@@ -291,36 +312,24 @@ export class AuthService {
 
     // Get user's roleId from organization membership (if exists)
     let roleId: string | null = null;
-    let roleName: string | null = null;
     try {
       const orgMember = await prisma.organizationMember.findFirst({
-        where: {
-          user_id: authCodeRecord.user_id,
-        },
-        select: {
-          role_id: true,
-          role: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        where: { user_id: authCodeRecord.user_id },
+        select: { role_id: true },
       });
-      if (orgMember?.role_id) {
-        roleId = orgMember.role_id;
-        roleName = orgMember.role?.name ?? null;
-      }
+      roleId = orgMember?.role_id ?? null;
     } catch {
       // If organization member query fails, continue without roleId
     }
+    const roleName = (await getUserRoleName(authCodeRecord.user_id)) ?? null;
 
     // Generate the JWT token
     const token = generateBaseToken(
       authCodeRecord.user_id,
       authCodeRecord.user.email,
       accountIds,
-      [authCodeRecord.user.firstName, authCodeRecord.user.lastName].filter(Boolean).join(' ') || undefined
+      [authCodeRecord.user.firstName, authCodeRecord.user.lastName].filter(Boolean).join(' ') || undefined,
+      roleName ?? undefined
     );
 
     const response: any = {
